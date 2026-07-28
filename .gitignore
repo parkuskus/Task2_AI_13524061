@@ -2,6 +2,7 @@
 __pycache__/
 *.py[codz]
 *$py.class
+__init__.py
 
 # C extensions
 *.so
@@ -248,3 +249,16 @@ latexmkrc
 
 # Extra folder
 extra/
+
+# Submissions
+submissions/
+
+# Pickle / model files
+*.pkl
+*.joblib
+
+# macOS
+.DS_Store
+
+# OS generated files
+Thumbs.db
