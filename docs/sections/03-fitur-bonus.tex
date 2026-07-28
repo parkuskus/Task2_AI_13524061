@@ -1,0 +1,50 @@
+\section{Jumlah Pemain Dinamis}
+Fitur ini memungkinkan jumlah pemain ditentukan saat permainan dimulai, dengan rentang 2 sampai 10 pemain. Sistem perlu membaca input jumlah pemain, memvalidasi bahwa nilainya berada dalam rentang tersebut, lalu membuat data awal untuk setiap pemain. Data tersebut mencakup nama atau ID pemain, token, uang awal, posisi di papan, status Jail, dan daftar properti yang dimiliki.
+
+Agar permainan tetap tertata ketika jumlah pemain bertambah, urutan giliran disimpan dalam list pemain aktif. Pemain yang bangkrut cukup dihapus atau ditandai tidak aktif tanpa mengubah alur utama permainan. Token juga harus dibuat otomatis, misalnya \texttt{P1}, \texttt{P2}, hingga \texttt{P10}, sehingga tidak diperlukan daftar token manual yang panjang.
+
+\begin{itemize}
+    \item Input jumlah pemain divalidasi sebelum permainan dimulai.
+    \item Setiap pemain mendapat state awal yang seragam dan mudah dilacak.
+    \item Giliran berjalan berdasarkan list pemain aktif agar pemain yang bangkrut tidak lagi mendapat giliran.
+\end{itemize}
+\section{Papan Dinamis}
+Fitur ini membuat ukuran papan dapat dikonfigurasi dari 40 hingga 100 petak. Papan tidak lagi harus ditulis sebagai daftar tetap berisi 40 elemen, tetapi dapat dibentuk berdasarkan jumlah petak yang dipilih. Setiap petak tetap memiliki indeks, nama, tipe, dan aksi yang harus dijalankan ketika pemain mendarat di sana.
+
+Untuk menjaga keseimbangan permainan, distribusi petak khusus perlu tetap proporsional. Petak seperti GO, Jail, Free Parking, dan Go to Jail tetap ditempatkan sebagai petak penting. Petak properti, Chance, Community Chest, pajak, stasiun, dan utilitas dapat disebar di antara petak-petak tersebut. Pada papan yang lebih besar, jumlah properti dapat bertambah dan dikelompokkan ke color group tambahan agar peluang monopoli tetap masuk akal.
+
+\begin{itemize}
+    \item Ukuran papan dibaca dari konfigurasi awal permainan.
+    \item Setiap petak menyimpan tipe dan aksi yang konsisten dengan aturan Monopoly.
+    \item Harga beli, sewa, dan distribusi properti disesuaikan agar papan besar tidak membuat permainan terlalu lambat.
+\end{itemize}
+\section{Bot Opponent}
+Fitur AI Opponent menambahkan pemain komputer yang dapat mengambil keputusan dasar tanpa input manusia. AI tidak perlu menggunakan strategi kompleks; cukup memiliki aturan sederhana yang konsisten dan dapat diprediksi. Misalnya, AI membeli properti jika saldo setelah pembelian masih aman, membangun rumah ketika sudah memiliki monopoli, dan melakukan mortgage hanya ketika membutuhkan uang untuk membayar kewajiban.
+
+Keputusan AI dapat dibuat berdasarkan evaluasi state saat ini. Faktor yang diperiksa antara lain saldo uang, harga properti, potensi monopoli, nilai sewa, jumlah properti yang dimiliki, serta risiko bangkrut setelah transaksi. Dengan pendekatan ini, AI tetap cukup informatif untuk simulasi tanpa membutuhkan algoritma yang terlalu berat.
+
+\begin{itemize}
+    \item AI dapat membeli atau menolak properti berdasarkan saldo dan nilai strategis properti.
+    \item AI dapat membangun rumah atau hotel ketika syarat monopoli dan even-build rule terpenuhi.
+    \item AI dapat melakukan mortgage sebagai pilihan terakhir untuk menghindari kebangkrutan.
+\end{itemize}
+\section{Trading System}
+Trading System memungkinkan pemain menukar properti, uang tunai, dan kartu \textit{Get Out of Jail Free}. Fitur ini penting karena dalam Monopoly, pemain sering membutuhkan trade untuk menyelesaikan satu color group dan membentuk monopoli. Sistem tidak perlu memaksa negosiasi panjang; cukup menyediakan proposal trade yang jelas antara dua pemain.
+
+Setiap proposal trade berisi pihak pengirim, pihak penerima, daftar aset yang diberikan, dan daftar aset yang diminta. Sebelum trade dijalankan, sistem memvalidasi bahwa semua aset benar-benar dimiliki oleh pihak yang menawarkan. Properti yang masih memiliki bangunan di color group-nya tidak boleh dipindahkan sebelum bangunan dijual kembali ke Bank, sesuai aturan resmi.
+
+\begin{itemize}
+    \item Trade hanya dieksekusi jika kedua pemain menyetujui proposal.
+    \item Properti, uang, dan kartu bebas Jail dapat menjadi bagian dari proposal.
+    \item Validasi mencegah trade ilegal, terutama pada properti yang masih terkait bangunan.
+\end{itemize}
+\section{Auction System}
+Auction System menangani lelang ketika pemain mendarat di properti yang belum dimiliki tetapi menolak membelinya. Lelang membuat permainan lebih sesuai dengan aturan resmi Monopoly, karena properti tidak boleh dibiarkan begitu saja setelah ditolak oleh pemain pertama. Semua pemain aktif, termasuk pemain yang menolak pembelian awal, tetap boleh ikut menawar.
+
+Lelang berjalan dengan menyimpan tawaran tertinggi dan pemain yang memegang tawaran tersebut. Setiap pemain mendapat kesempatan untuk menaikkan tawaran atau keluar dari lelang. Ketika tidak ada pemain lain yang menaikkan tawaran, properti diberikan kepada penawar tertinggi dan uangnya dibayarkan ke Bank. Jika tidak ada tawaran sama sekali, properti tetap tidak dimiliki dan permainan lanjut ke giliran berikutnya.
+
+\begin{itemize}
+    \item Lelang dimulai otomatis setelah pemain menolak membeli properti kosong.
+    \item Tawaran tertinggi dan peserta aktif ditampilkan di terminal.
+    \item Properti berpindah ke pemenang lelang setelah pembayaran berhasil divalidasi.
+\end{itemize}

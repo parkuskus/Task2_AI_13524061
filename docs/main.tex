@@ -1,0 +1,150 @@
+\documentclass[12pt,a4paper]{report}
+
+% ---------- Paket dasar ----------
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[indonesian]{babel}
+\usepackage{lipsum}
+
+% ---------- Paket matematika & gambar ----------
+\usepackage{amsmath,amssymb}
+\usepackage{graphicx}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{float}
+\bibliographystyle{IEEEtran}
+% ---------- Paket lain ----------
+\usepackage[most]{tcolorbox}
+\tcbuselibrary{listings}
+\usepackage{listings}
+\lstset{
+  basicstyle=\ttfamily\footnotesize,
+  columns=fullflexible,
+  keepspaces=true,
+  breaklines=true,
+  literate={-}{{-}}1
+}
+\usepackage{forest}
+\usepackage{hyperref}
+\usepackage{fancyhdr}
+
+\usepackage{titlesec}
+
+\usepackage{titlesec}
+\usepackage{longtable}
+\usepackage{array} % untuk menentukan lebar kolom
+\usepackage{booktabs} % gaya tabel lebih elegan
+\usepackage[table]{xcolor}
+
+% ---------- Paket TikZ untuk diagram ----------
+\usepackage{tikz}
+\usetikzlibrary{shapes.geometric, arrows.meta, positioning, fit, calc, backgrounds}
+
+
+
+% Tambah jarak aman dari header dan footer:	
+\setlength{\headheight}{15pt}   % wajib cukup besar untuk fancyhdr
+\setlength{\headsep}{55pt}      % jarak header ke teks
+\setlength{\footskip}{28pt}     % jarak teks ke footer
+\usepackage[a4paper,top=3cm,bottom=3cm,left=3cm,right=3cm]{geometry}
+
+% Semua gambar dari folder public dan subfoldernya
+\graphicspath{{public/}{public/01-pendahuluan/}{public/02-dasar-teori/}{public/03-implementasi/}}
+
+% --- Pengaturan header & footer ---
+\pagestyle{fancy}
+\fancyhf{} % clear all
+
+% --- Paksa semua halaman (termasuk awal chapter) memakai fancy ---
+\fancypagestyle{plain}{%
+	\fancyhf{}%
+	\fancyhead[L]{%
+		\includegraphics[height=1.1cm]{logo-itb}\hspace{0.3cm}%
+		\includegraphics[height=1.1cm]{logo-stei}\hspace{0.3cm}%
+	}%
+	\fancyhead[R]{%
+		\begin{minipage}{9cm}
+			\raggedleft\bfseries IF1221 Logika Komputasional\\
+			\normalsize Tugas Besar\\
+			Semester 2 2026/2027
+		\end{minipage}
+	}%
+	\renewcommand{\headrulewidth}{0.4pt}%
+	\fancyfoot[L]{\small v1.0}%
+	\fancyfoot[C]{\small Halaman \thepage}%
+	\fancyfoot[R]{\small }%
+	\renewcommand{\footrulewidth}{0.4pt}%
+}
+
+
+\fancyhead[L]{%
+	\includegraphics[height=1.1cm]{logo-itb}\hspace{0.3cm}%
+	\includegraphics[height=1.1cm]{logo-stei}\hspace{0.3cm}%
+}
+
+\fancyhead[R]{%
+	\begin{minipage}{9cm}
+		\raggedleft\bfseries IF1221 Logika Komputasional\\
+			\normalsize Tugas Besar\\
+			Semester 2 2026/2027
+	\end{minipage}
+}
+
+\renewcommand{\headrulewidth}{0.4pt}
+
+\fancyfoot[L]{\small v1.0}
+\fancyfoot[C]{\small Halaman \thepage}
+\fancyfoot[R]{\small }
+\renewcommand{\footrulewidth}{0.4pt}
+
+\begin{document}
+
+\begin{titlepage}
+	\thispagestyle{empty}
+	\centering
+
+	% ---------- Judul utama ----------
+	{\LARGE \textbf{Tugas Besar}\par}
+	\vspace{0.2cm}
+	{\LARGE \textbf{Monopoly}\par}
+	\vspace{0.8cm}
+	{\large IF1221 Logika Komputasional \par}
+	\vspace{0.2cm}
+	{\large Semester 2 Tahun 2026/2027\par}
+
+	% ---------- Gambar tengah ----------
+	\vspace{1.4cm}
+	\includegraphics[width=0.70\textwidth]{cover-game.png}\par
+
+	% ---------- Disusun oleh ----------
+	\vspace{1.2cm}
+	{\bfseries Disusun oleh:\par}
+	\vspace{0.2cm}
+	\textbf{Muhammad Aufar Rizqi Kusuma (13524061)}
+
+	% ---------- Institusi ----------
+	\vspace{2.0cm}
+	Laboratorium Intelegensi Buatan\par
+	Program Studi Teknik Informatika\par
+	Sekolah Teknik Elektro dan Informatika\par
+	Institut Teknologi Bandung\par
+
+\end{titlepage}
+
+\clearpage
+\pagestyle{fancy}
+
+\tableofcontents
+\clearpage
+
+\chapter{Pendahuluan}
+\input{sections/01-pendahuluan}
+
+\chapter{Spesifikasi Permainan}
+\input{sections/02-spesifikasi-permainan}
+
+\chapter{Fitur Bonus}
+\input{sections/03-fitur-bonus}
+
+
+\end{document}

@@ -1,0 +1,1119 @@
+\section{Deskripsi Permainan}
+
+
+\subsection{Komponen Permainan}
+
+Permainan Monopoly terdiri dari berbagai komponen yang saling berinteraksi untuk menciptakan pengalaman bermain yang lengkap. Berikut adalah penjelasan detail setiap komponen.
+
+\subsubsection{Papan Permainan (Gameboard)}
+
+Papan permainan adalah komponen utama yang menjadi arena bermain. Papan Monopoly berbentuk persegi dengan 40 petak yang tersusun melingkar. Pemain bergerak searah jarum jam mengelilingi papan sesuai dengan hasil lemparan dadu. Setiap petak memiliki fungsi berbeda, mulai dari properti yang dapat dibeli, petak kartu, petak pajak, hingga petak khusus seperti GO, Jail, dan Free Parking.
+
+\subsubsection{Token Pemain (Playing Tokens)}
+
+Token pemain adalah representasi fisik dari posisi setiap pemain di papan permainan. Setiap pemain memilih satu token unik yang membedakannya dari pemain lain. Token bergerak mengelilingi papan sesuai dengan hasil lemparan dadu. Dalam implementasi ini, token direpresentasikan sebagai variabel \textit{dynamic predicate} yang menyimpan posisi pemain di papan.
+
+\subsubsection{Kartu Title Deed (Title Deed Cards)}
+
+Kartu Title Deed adalah bukti kepemilikan properti. Setiap properti memiliki satu kartu Title Deed yang berisi informasi harga beli, nilai sewa dasar, nilai sewa dengan bangunan, dan nilai mortgage. Pemain yang membeli properti akan menerima kartu Title Deed yang harus disimpan menghadap ke atas. Kartu ini menjadi referensi utama untuk menghitung sewa ketika pemain lain mendarat di properti tersebut.
+
+\subsubsection{Kartu Chance dan Community Chest}
+
+Permainan memiliki dua deck kartu terpisah, masing-masing berisi 16 kartu. Kartu Chance dan Community Chest berisi berbagai instruksi yang mempengaruhi jalannya permainan, seperti perpindahan posisi pemain, pembayaran atau penerimaan uang, pengiriman ke Jail, atau kartu \textit{Get Out of Jail Free}. Ketika pemain mendarat di petak Chance atau Community Chest, mereka harus mengambil kartu paling atas dari deck yang sesuai dan mengikuti instruksinya.
+
+\subsubsection{Bangunan (Houses dan Hotels)}
+
+Bangunan digunakan untuk meningkatkan nilai sewa properti. Terdapat 32 Houses dan 12 Hotels dalam permainan. Pemain dapat membangun Houses di properti yang dimilikinya setelah berhasil mengumpulkan semua properti dalam satu color group (monopoli). Setelah membangun 4 Houses di setiap properti dalam color group, pemain dapat menukarnya dengan 1 Hotel. Bangunan harus dibangun secara merata di seluruh properti dalam color group.
+
+\subsubsection{Uang Monopoly (Monopoly Money)}
+
+Uang Monopoly adalah alat tukar dalam permainan. Bank menyimpan semua uang yang tidak dimiliki pemain dan mendistribusikan uang awal kepada setiap pemain. Uang digunakan untuk membeli properti, membayar sewa, membayar pajak, membangun bangunan, dan berbagai transaksi lainnya. Bank dapat mencetak uang tambahan jika diperlukan dalam bentuk IOU.
+
+\subsubsection{Dadu (Dice)}
+
+Permainan menggunakan 2 dadu standar dengan 6 sisi. Dadu menentukan seberapa jauh pemain bergerak di papan permainan. Jika pemain melempar double (kedua dadu menunjukkan angka yang sama), pemain mendapat giliran tambahan. Namun, jika pemain melempar double tiga kali berturut-turut, pemain harus langsung masuk ke Jail.
+
+\subsection{Layout Papan Permainan}
+
+Papan Monopoly terdiri dari 40 petak yang disusun dalam bentuk persegi dengan 11 petak per sisi termasuk 4 petak sudut. Berikut adalah ilustrasi papan permainan.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\textwidth]{monopoly-board.png}
+    \caption{Layout Papan Monopoly 40 Petak}
+    \label{fig:board-layout}
+\end{figure}
+
+\textbf{Keterangan papan:}
+\begin{itemize}
+    \item CC = Community Chest
+    \item RR = Railroad (Stasiun)
+    \item Petak sudut terdiri atas GO (0), Jail (10), Free Parking (20), dan Go to Jail (30)
+    \item Warna latar petak menunjukkan color group properti
+    \item Pemain bergerak searah jarum jam dari GO (0) mengelilingi papan
+\end{itemize}
+
+\subsection{Tipe Petak}
+
+Papan permainan terdiri dari berbagai tipe petak dengan fungsi yang berbeda-beda.
+
+\begin{table}[H]
+    \centering
+    \caption{Tipe Petak dalam Papan Monopoly}
+    \label{tab:tipe-petak}
+    \begin{tabular}{@{}lll@{}}
+        \toprule
+        \textbf{Tipe}      & \textbf{Jumlah} & \textbf{Deskripsi}                      \\
+        \midrule
+        Corner             & 4               & GO, Jail, Free Parking, Go to Jail      \\
+        Properti (colored) & 22              & 6 color group, 2--3 properti per grup   \\
+        Stasiun            & 4               & Reading, Pennsylvania, B\&O, Short Line \\
+        Utilitas           & 2               & Electric Company, Water Works           \\
+        Chance             & 3               & Ambil kartu Chance                      \\
+        Community Chest    & 3               & Ambil kartu Community Chest             \\
+        Tax                & 2               & Income Tax (\$200), Luxury Tax (\$100)  \\
+        \bottomrule
+    \end{tabular}\normalsize
+\end{table}
+
+\subsection{Detail Properti}
+
+Properti dalam Monopoly terdiri dari tiga jenis utama yaitu properti berwarna (sites), stasiun (railroads), dan utilitas (utilities). Setiap properti memiliki harga beli dan nilai sewa yang tercantum pada \textit{Title Deed card}.
+
+\subsubsection{Properti Berwarna (Sites)}
+
+Properti berwarna adalah properti yang dapat dibangun rumah dan hotel. Properti ini dikelompokkan berdasarkan warna, dan pemain yang berhasil mengumpulkan semua properti dalam satu grup warna akan mendapatkan monopoli. Dengan monopoli, pemain dapat membangun rumah dan hotel untuk meningkatkan nilai sewa.
+
+Terdapat 6 color group dalam papan Monopoly.
+
+\begin{table}[H]
+    \centering
+    \caption{Color Group Properti Berwarna}
+    \label{tab:color-group}
+    \scriptsize\begin{tabular}{@{}lll p{5.5cm}@{}}
+        \toprule
+        \textbf{Color Group}          & \textbf{Jumlah Properti} & \textbf{Harga Beli} & \textbf{Harga Rumah/Hotel} \\
+        \midrule
+        \rowcolor{brown!20} Brown     & 2                        & \$60                & \$50 / \$50                \\
+        \rowcolor{cyan!20} Light Blue & 3                        & \$100--\$120        & \$50 / \$50                \\
+        \rowcolor{pink!30} Pink       & 3                        & \$140--\$160        & \$100 / \$100              \\
+        \rowcolor{orange!30} Orange   & 3                        & \$180--\$200        & \$100 / \$100              \\
+        \rowcolor{red!20} Red         & 3                        & \$220--\$240        & \$150 / \$150              \\
+        \rowcolor{yellow!20} Yellow   & 3                        & \$260--\$280        & \$150 / \$150              \\
+        \rowcolor{green!20} Green     & 3                        & \$300--\$320        & \$200 / \$200              \\
+        \rowcolor{blue!20} Dark Blue  & 2                        & \$350--\$400        & \$200 / \$200              \\
+        \bottomrule
+    \end{tabular}\normalsize
+\end{table}
+
+Setiap properti memiliki nilai sewa yang meningkat seiring dengan jumlah bangunan. Sewa dasar adalah sewa tanpa bangunan. Jika pemilik memiliki monopoli, sewa dasar digandakan. Sewa dengan 1 rumah meningkat signifikan, dan terus meningkat untuk 2, 3, dan 4 rumah. Sewa dengan hotel merupakan nilai tertinggi yang dapat dipungut. Berikut adalah detail sewa untuk setiap properti.
+
+\begin{table}[H]
+    \centering
+    \caption{Detail Sewa Properti}
+    \label{tab:detail-sewa}
+    \resizebox{\textwidth}{!}{%
+        \begin{tabular}{@{}llcccccc@{}}
+            \toprule
+            \textbf{Properti} & \textbf{Harga} & \textbf{Dasar} & \textbf{1 Rumah} & \textbf{2 Rumah} & \textbf{3 Rumah} & \textbf{4 Rumah} & \textbf{Hotel} \\
+            \midrule
+            Mediterranean Ave & \$60           & \$2            & \$10             & \$30             & \$90             & \$160            & \$250          \\
+            Baltic Ave        & \$60           & \$4            & \$20             & \$60             & \$180            & \$320            & \$450          \\
+            Oriental Ave      & \$100          & \$6            & \$30             & \$90             & \$270            & \$400            & \$550          \\
+            Vermont Ave       & \$100          & \$6            & \$30             & \$90             & \$270            & \$400            & \$550          \\
+            Connecticut Ave   & \$120          & \$8            & \$40             & \$100            & \$300            & \$450            & \$600          \\
+            St. Charles Place & \$140          & \$10           & \$50             & \$150            & \$450            & \$625            & \$750          \\
+            States Ave        & \$140          & \$10           & \$50             & \$150            & \$450            & \$625            & \$750          \\
+            Virginia Ave      & \$160          & \$12           & \$60             & \$180            & \$500            & \$700            & \$900          \\
+            St. James Place   & \$180          & \$14           & \$70             & \$200            & \$550            & \$750            & \$950          \\
+            Tennessee Ave     & \$180          & \$14           & \$70             & \$200            & \$550            & \$750            & \$950          \\
+            New York Ave      & \$200          & \$16           & \$80             & \$220            & \$600            & \$800            & \$1000         \\
+            \bottomrule
+        \end{tabular}%
+    }
+\end{table}
+
+\subsubsection{Stasiun (Railroads)}
+
+Stasiun adalah properti yang tidak dapat dibangun rumah atau hotel. Nilai sewa bergantung pada jumlah stasiun yang dimiliki oleh pemain yang sama. Semakin banyak stasiun yang dimiliki, semakin tinggi sewa yang dapat dipungut.
+
+\begin{table}[H]
+    \centering
+    \caption{Detail Sewa Stasiun}
+    \label{tab:sewa-stasiun}
+    \begin{tabular}{@{}llllll@{}}
+        \toprule
+        \textbf{Stasiun}      & \textbf{Harga} & \multicolumn{4}{c}{\textbf{Sewa Berdasarkan Jumlah Stasiun Dimiliki}}                                        \\
+        \cmidrule(lr){3-6}
+                              &                & \textbf{1}                                                            & \textbf{2} & \textbf{3} & \textbf{4} \\
+        \midrule
+        Reading Railroad      & \$200          & \$25                                                                  & \$50       & \$100      & \$200      \\
+        Pennsylvania Railroad & \$200          & \$25                                                                  & \$50       & \$100      & \$200      \\
+        B\&O Railroad         & \$200          & \$25                                                                  & \$50       & \$100      & \$200      \\
+        Short Line            & \$200          & \$25                                                                  & \$50       & \$100      & \$200      \\
+        \bottomrule
+    \end{tabular}\normalsize
+\end{table}
+
+\subsubsection{Utilitas (Utilities)}
+
+Utilitas adalah properti yang tidak dapat dibangun rumah atau hotel. Nilai sewa dihitung dengan mengalikan hasil lemparan dadu dengan faktor pengali yang bergantung pada jumlah utilitas yang dimiliki.
+
+\begin{table}[H]
+    \centering
+    \caption{Detail Sewa Utilitas}
+    \label{tab:sewa-utilitas}
+    \scriptsize\begin{tabular}{@{}lll p{5.5cm}@{}}
+        \toprule
+        \textbf{Utilitas} & \textbf{Harga} & \multicolumn{2}{c}{\textbf{Sewa Berdasarkan Jumlah Utilitas Dimiliki}}                  \\
+        \cmidrule(lr){3-4}
+                          &                & \textbf{1}                                                             & \textbf{2}     \\
+        \midrule
+        Electric Company  & \$150          & 4× hasil dadu                                                          & 10× hasil dadu \\
+        Water Works       & \$150          & 4× hasil dadu                                                          & 10× hasil dadu \\
+        \bottomrule
+    \end{tabular}\normalsize
+\end{table}
+
+\subsubsection{Petak Khusus}
+
+Selain properti, papan Monopoly juga memiliki petak-petak khusus yang memiliki fungsi tertentu.
+
+\begin{table}[H]
+    \centering
+    \caption{Petak Khusus dan Fungsinya}
+    \label{tab:petak-khusus}
+    \begin{tabular}{@{}llp{8cm}@{}}
+        \toprule
+        \textbf{Petak}  & \textbf{Jumlah} & \textbf{Fungsi}                                                                                                                                    \\
+        \midrule
+        GO              & 1               & Pemain yang melewati atau mendarat di petak ini menerima \$200 dari Bank.                                                                          \\
+        Jail            & 1               & Pemain yang mendarat di sini secara normal hanya ``Just Visiting'' dan tidak ada penalti. Pemain yang dikirim ke sini harus mengikuti aturan Jail. \\
+        Free Parking    & 1               & Tidak ada efek. Pemain dapat beristirahat di sini tanpa penalti.                                                                                   \\
+        Go to Jail      & 1               & Pemain yang mendarat di sini harus langsung bergerak ke petak Jail. Turn berakhir dan pemain tidak menerima \$200.                                 \\
+        Chance          & 3               & Pemain harus mengambil kartu Chance dari deck dan mengikuti instruksinya.                                                                          \\
+        Community Chest & 3               & Pemain harus mengambil kartu Community Chest dari deck dan mengikuti instruksinya.                                                                 \\
+        Income Tax      & 1               & Pemain harus membayar \$200 kepada Bank.                                                                                                           \\
+        Luxury Tax      & 1               & Pemain harus membayar \$100 kepada Bank.                                                                                                           \\
+        \bottomrule
+    \end{tabular}\normalsize
+\end{table}
+
+\subsection{Uang Awal}
+
+Setiap pemain memulai permainan dengan total uang sebesar \$1,500 yang diberikan oleh Bank. Uang ini didistribusikan dalam berbagai denominasi untuk memudahkan transaksi selama permainan berlangsung. Distribusi uang awal dirancang agar pemain memiliki cukup uang tunai untuk melakukan pembelian properti di awal permainan, sekaligus menyisakan uang untuk membayar sewa, pajak, dan biaya lainnya. Berikut adalah rincian lengkap distribusi uang awal per pemain.
+
+Bank bertanggung jawab untuk mengelola seluruh uang dalam permainan. Bank membayar gaji \$200 setiap kali pemain melewati atau mendarat di GO, membayar bonus dari kartu Chance dan Community Chest, meminjamkan uang melalui sistem mortgage, serta memungut pajak, denda, dan bunga. Bank tidak pernah bangkrut dan dapat mencetak uang tambahan dalam bentuk IOU jika diperlukan.
+
+\section{Alur Permainan}
+
+Bagian ini menjelaskan alur permainan Monopoly secara menyeluruh, mulai dari tahap persiapan, struktur giliran pemain, hingga kondisi akhir permainan. Alur permainan dibagi menjadi tiga fase utama yaitu fase persiapan (\textit{setup}), fase bermain (\textit{turn-based play}), dan fase akhir (\textit{end game}).
+
+\subsection{Fase Persiapan (Setup)}
+
+Sebelum permainan dimulai, seluruh komponen permainan harus disiapkan dengan benar. Fase persiapan terdiri dari lima langkah yang harus dilakukan secara berurutan.
+
+\begin{enumerate}
+    \item \textbf{Pengaturan Komponen oleh Banker}
+
+          Banker (pemain yang ditunjuk untuk mengelola Bank) mengatur seluruh komponen permainan. Banker menempatkan uang Monopoly, Title Deed cards, Houses, dan Hotels di area Bank. Houses dan Hotels diletakkan terpisah agar mudah diakses saat pemain melakukan pembangunan.
+
+    \item \textbf{Pengacakan Kartu}
+
+          Kartu Chance dan Community Chest diacak secara terpisah dan diletakkan menghadap ke bawah pada petak masing-masing di papan permainan. Setiap deck berisi 16 kartu dengan berbagai instruksi.
+
+    \item \textbf{Pemilihan Token}
+
+          Setiap pemain memilih satu token dan meletakkannya di petak GO. Token ini akan menandai posisi pemain di papan sepanjang permainan.
+
+    \item \textbf{Distribusi Uang Awal}
+
+          Banker membagikan uang awal sebesar \$1,500 kepada setiap pemain sesuai dengan distribusi yang telah ditentukan. Pemain dapat memilih denominasi uang sesuai kebutuhan.
+
+    \item \textbf{Penentuan Pemain Pertama}
+
+          Secara default, pemain pertama akan mendapatkan giliran pertama, pemain kedua akan mendapatkan giliran kedua, dan seterusnya.
+\end{enumerate}
+
+\subsection{Struktur Giliran Pemain}
+
+Setiap giliran pemain mengikuti struktur yang sama. Pemain yang sedang mendapat giliran disebut pemain aktif. Pemain aktif harus menyelesaikan seluruh langkah dalam gilirannya sebelum memberikan dadu ke pemain berikutnya.
+
+\subsubsection{Langkah 1: Melempar Dadu}
+
+Pemain aktif melempar kedua dadu dan mencatat hasilnya. Jumlah kedua dadu menentukan berapa langkah pemain akan bergerak di papan permainan.
+
+\subsubsection{Langkah 2: Mengecek Double}
+
+Jika kedua dadu menunjukkan angka yang sama (\textit{double}), pemain mendapat giliran tambahan setelah menyelesaikan langkah saat ini. Namun, jika pemain mendapatkan double tiga kali berturut-turut dalam satu giliran, pemain harus langsung masuk ke Jail dan gilirannya berakhir.
+
+\subsubsection{Langkah 3: Bergerak di Papan}
+
+Pemain menggerakkan token searah jarum jam sebanyak langkah sesuai hasil lemparan dadu. Pemain dapat melewati petak GO dan menerima \$200 dari Bank. Jika pemain mendarat tepat di petak GO, pemain juga menerima \$200.
+
+\subsubsection{Langkah 4: Menyelesaikan Petak}
+
+Setelah bergerak, pemain harus menyelesaikan aksi sesuai dengan petak yang diinjaki. Jenis petak yang diinjaki menentukan aksi yang harus dilakukan.
+
+\subsubsection{Langkah 5: Mengecek Kebangkrutan}
+
+Setelah menyelesaikan petak, sistem mengecek apakah pemain aktif mengalami kebangkrutan. Jika pemain tidak mampu membayar hutang meskipun telah menjual semua aset, pemain dinyatakan bangkrut dan keluar dari permainan.
+
+\subsubsection{Langkah 6: Mengakhiri Giliran}
+
+Jika pemain tidak bangkrut dan tidak mendapat giliran tambahan (tidak double), giliran berakhir dan dadu diberikan ke pemain berikutnya. Jika pemain mendapat giliran tambahan karena double, pemain kembali ke Langkah 1.
+
+\subsection{Resolusi Petak}
+
+\subsubsection{Petak GO}
+
+Pemain yang melewati atau mendarat di petak GO menerima \$200 dari Bank. Pemain dapat menerima \$200 lebih dari sekali dalam satu giliran jika kartu Chance atau Community Chest menginstruksikan pemain untuk ``Maju ke GO.''
+
+\subsubsection{Properti Tidak Dimiliki}
+
+Jika pemain mendarat di properti yang belum dimiliki oleh pemain manapun, pemain memiliki hak pertama untuk membeli properti tersebut dengan harga yang tercantum di papan. Jika pemain memilih untuk membeli, pemain membayar Bank dan menerima Title Deed card sebagai bukti kepemilikan.
+
+Jika pemain menolak untuk membeli, properti tetap tidak dimiliki dan permainan berlanjut ke giliran berikutnya. Mekanisme lelang otomatis merupakan fitur bonus yang dijabarkan pada Bab 3.
+
+\subsubsection{Properti Dimiliki Pemain Lain}
+
+Jika pemain mendarat di properti yang sudah dimiliki pemain lain, pemain harus membayar sewa kepada pemilik properti. Nilai sewa ditentukan oleh Title Deed card properti tersebut.
+
+Sewa tidak dibayarkan jika properti sedang di-\textit{mortgage}. Jika pemilik memiliki monopoli (semua properti dalam satu color group), sewa dasar digandakan untuk properti yang belum dibangun.
+
+\subsubsection{Stasiun dan Utilitas}
+
+Jika pemain mendarat di stasiun atau utilitas yang belum dimiliki, pemain dapat membelinya. Jika menolak, properti tetap tidak dimiliki. Jika sudah dimiliki, pemain membayar sewa sesuai aturan. Sewa stasiun bergantung pada jumlah stasiun yang dimiliki pemain yang sama. Sewa utilitas bergantung pada hasil lemparan dadu dikalikan faktor pengali.
+
+\subsubsection{Kartu Chance dan Community Chest}
+
+Pemain mengambil kartu paling atas dari deck yang sesuai dan mengikuti instruksinya secara langsung. Setelah instruksi dilaksanakan, kartu dikembalikan ke bagian bawah deck. Jika kartu berisi instruksi ``Get Out of Jail Free,'' pemain dapat menyimpan kartu tersebut hingga digunakan atau dijual ke pemain lain.
+
+Jika kartu menginstruksikan pemain untuk berpindah ke petak lain dan pemain melewati GO dalam perjalanan, pemain menerima \$200. Namun, jika kartu menginstruksikan pemain untuk masuk ke Jail, pemain tidak menerima \$200.
+
+\subsubsection{Petak Pajak}
+
+Pemain yang mendarat di petak Income Tax harus membayar \$200 kepada Bank. Pemain yang mendarat di petak Luxury Tax harus membayar \$100 kepada Bank.
+
+\subsubsection{Go to Jail}
+
+Pemain yang mendarat di petak Go to Jail harus langsung menggerakkan token ke petak Jail. Giliran pemain berakhir seketika dan pemain tidak menerima \$200 dari GO meskipun melewati petak GO dalam perjalanan ke Jail.
+
+\subsubsection{Jail (Just Visiting)}
+
+Jika pemain mendarat di petak Jail melalui pergerakan normal (bukan karena dikirim), pemain berada dalam status ``Just Visiting'' dan tidak menerima penalti apapun. Pemain bergerak normal pada giliran berikutnya.
+
+\subsubsection{Free Parking}
+
+Pemain yang mendarat di Free Parking tidak melakukan aksi apapun. Pemain dapat beristirahat di petak ini tanpa penalti. Pemain tetap dapat melakukan transaksi seperti mengumpulkan sewa atau membangun properti.
+
+\section{Aturan Permainan}
+
+Bagian ini menjelaskan seluruh aturan permainan Monopoly secara detail. Aturan mencakup mekanisme pembelian properti, pembangunan, mortgage, Jail, kebangkrutan, trading, dan kondisi kemenangan.
+
+\subsection{Pembelian Properti}
+
+Ketika pemain mendarat di properti yang belum dimiliki siapapun, pemain memiliki hak pertama untuk membeli properti tersebut dengan harga yang tercantum di papan. Pemain membayar Bank dan menerima Title Deed card sebagai bukti kepemilikan. Title Deed card harus disimpan menghadap ke atas di depan pemain. Mekanisme lelang otomatis ketika pemain menolak membeli merupakan fitur bonus yang dijabarkan pada Bab 3.
+
+\subsection{Kepemilikan Properti dan Monopoli}
+
+Memiliki properti memberikan hak kepada pemain untuk memungut sewa dari pemain lain yang mendarat di properti tersebut. Pemain yang memiliki properti harus meminta sewa sebelum pemain berikutnya melempar dadu. Jika pemilik lupa meminta sewa sebelum giliran berikutnya dimulai, pemain yang mendarat tidak wajib membayar.
+
+Pemain yang berhasil mengumpulkan semua properti dalam satu color group mendapatkan monopoli. Dengan monopoli, pemain mendapat dua keuntungan. Pertama, pemain berhak membangun rumah dan hotel di properti tersebut. Kedua, sewa dasar pada properti yang belum dibangun dalam color group tersebut digandakan. Penggandaan sewa tidak berlaku jika ada properti dalam color group yang sedang di-\textit{mortgage}.
+
+\subsection{Pembangunan Rumah dan Hotel}
+
+Pembangunan rumah dan hotel hanya dapat dilakukan pada properti yang dimiliki pemain yang telah mencapai monopoli. Pemain dapat membangun pada gilirannya sendiri atau di antara giliran pemain lain.
+
+\subsubsection{Aturan Pembangunan Merata (Even-Build Rule)}
+
+Pembangunan harus dilakukan secara merata di seluruh properti dalam satu color group. Pemain tidak dapat membangun rumah kedua di satu properti sebelum setiap properti lain dalam color group yang sama memiliki minimal satu rumah. Aturan ini berlaku untuk setiap tingkat pembangunan.
+
+Maksimal empat rumah dapat dibangun di setiap properti. Setelah keempat properti dalam color group memiliki empat rumah masing-masing, pemain dapat menukar keempat rumah tersebut dengan satu hotel. Hanya satu hotel yang dapat didirikan di setiap properti.
+
+\subsubsection{Kekurangan Bangunan}
+
+Jika Bank kehabisan rumah atau hotel, pemain harus menunggu hingga pemain lain menjual kembali bangunannya ke Bank sebelum dapat membeli. Mekanisme lelang bangunan merupakan fitur bonus yang dijabarkan pada Bab 3.
+
+\subsubsection{Properti yang Di-Mortgage}
+
+Pemain tidak dapat membangun di color group yang memiliki properti di-\textit{mortgage}. Seluruh properti dalam color group harus bebas dari mortgage sebelum pembangunan dapat dilakukan.
+
+\subsection{Penjualan Bangunan dan Properti}
+
+Pemain dapat menjual kembali bangunan ke Bank kapan saja pada gilirannya. Bank membayar setengah dari harga beli bangunan. Penjualan harus dilakukan secara merata di seluruh properti dalam color group, sama seperti saat membeli.
+
+Rumah dan hotel tidak dapat dijual ke pemain lain. Bangunan hanya dapat dijual kembali ke Bank. Untuk hotel, Bank membayar setengah harga hotel ditambah setengah harga empat rumah yang ditukarkan saat pembelian hotel. Jika diperlukan, hotel dapat dipecah kembali menjadi empat rumah asalkan rumah tersedia di Bank.
+
+Properti yang tidak memiliki bangunan dapat dijual ke pemain lain melalui kesepakatan pribadi dengan harga yang disetujui kedua belah pihak. Pemain tidak dapat menjual properti jika masih ada bangunan di properti manapun dalam color group yang sama. Seluruh bangunan harus dijual ke Bank terlebih dahulu.
+
+Properti yang di-\textit{mortgage} dapat dijual ke pemain lain dengan harga yang disepakati. Pembeli harus memilih antara melunasi mortgage segera (nilai mortgage ditambah bunga 10 persen) atau hanya membayar bunga 10 persen dan mempertahankan status mortgage. Jika pembeli memilih mempertahankan mortgage dan kemudian melunasinya di kemudian hari, bunga tambahan 10 persen akan dikenakan.
+
+\subsection{Mortgage}
+
+Mortgage adalah mekanisme untuk mendapatkan uang tunai dari Bank dengan menjaminkan properti. Pemain dapat melakukan mortgage pada properti yang tidak memiliki bangunan.
+
+Untuk melakukan mortgage, pemain terlebih dahulu menjual semua bangunan di properti tersebut ke Bank. Kemudian pemain membalik Title Deed card menjadi menghadap ke bawah dan menerima nilai mortgage yang tercantum di bagian belakang kartu dari Bank.
+
+Properti yang di-\textit{mortgage} tetap menjadi milik pemain. Tidak ada pemain lain yang dapat mengambil alih properti tersebut dengan melunasi mortgage ke Bank. Sewa tidak dapat dipungut dari properti yang di-\textit{mortgage}, namun pemain tetap dapat memungut sewa dari properti lain dalam color group yang sama yang tidak di-\textit{mortgage}.
+
+Untuk melepaskan mortgage, pemain membayar nilai mortgage ditambah bunga 10 persen kepada Bank, kemudian membalik Title Deed card kembali menghadap ke atas.
+
+\subsection{Jail}
+
+Pemain dapat dikirim ke Jail melalui tiga cara. Pertama, pemain mendarat di petak ``Go to Jail.'' Kedua, pemain mengambil kartu Chance atau Community Chest yang menginstruksikan ``Go Directly to Jail.'' Ketiga, pemain melempar double tiga kali berturut-turut dalam satu giliran.
+
+Ketika pemain dikirim ke Jail, giliran pemain berakhir seketika. Pemain tidak menerima \$200 dari GO meskipun melewati petak GO dalam perjalanan ke Jail. Token pemain dipindahkan ke petak Jail.
+
+Pemain yang berada di Jail tetap dapat memungut sewa dari properti yang tidak di-\textit{mortgage}. Pemain juga tetap dapat membangun, menjual bangunan, melakukan mortgage, dan trading.
+
+Pemain memiliki empat opsi untuk keluar dari Jail. Opsi pertama adalah membayar \$50 pada awal giliran berikutnya, kemudian melempar dadu dan bergerak seperti biasa. Opsi kedua adalah menggunakan kartu ``Get Out of Jail Free'' jika dimiliki. Kartu dikembalikan ke bagian bawah deck setelah digunakan. Opsi ketiga adalah membeli kartu ``Get Out of Jail Free'' dari pemain lain dengan harga yang disepakati, kemudian menggunakannya. Opsi keempat adalah mencoba melempar double dalam tiga giliran. Jika berhasil, pemain keluar dari Jail dan bergerak sesuai hasil lemparan dadu. Jika gagal pada percobaan ketiga, pemain wajib membayar \$50 dan bergerak sesuai hasil lemparan.
+
+Jika pemain mendarat di petak Jail melalui pergerakan normal tanpa dikirim, pemain berada dalam status ``Just Visiting'' dan tidak menerima penalti. Pemain bergerak normal pada giliran berikutnya.
+
+\subsection{Kebangkrutan}
+
+Pemain dinyatakan bangkrut ketika pemain berhutang lebih banyak uang daripada yang dapat dibayarkan dari seluruh aset yang dimiliki. Pemain yang bangkrut harus keluar dari permainan.
+
+Jika hutang pemain adalah kepada Bank, Bank mengambil seluruh uang tunai dan Title Deed card milik pemain. Properti yang diambil kembali oleh Bank dapat dijual kembali kepada pemain lain di kemudian hari. Kartu ``Get Out of Jail Free'' dikembalikan ke bagian bawah deck yang sesuai.
+
+Jika hutang pemain adalah kepada pemain lain, rumah dan hotel milik pemain yang bangkrut dijual ke Bank dengan harga setengah dari harga beli. Pemain yang menjadi kreditur menerima seluruh uang tunai, Title Deed card, dan kartu ``Get Out of Jail Free'' milik pemain yang bangkrut. Properti yang di-\textit{mortgage} juga diserahkan kepada kreditur. Kreditur harus segera membayar bunga 10 persen dan kemudian memilih antara mempertahankan mortgage atau melunasinya secara penuh.
+
+Jika pemain tidak mampu membayar sewa secara penuh, pemain dapat menawarkan pembayaran sebagian dalam bentuk uang tunai dan sebagian lagi dalam bentuk properti. Properti yang ditawarkan harus kosong dari bangunan. Kreditur berhak menolak atau menerima penawaran tersebut, termasuk menerima properti yang di-\textit{mortgage} dengan nilai yang disepakati.
+
+\subsection{Trading}
+
+Aturan resmi Monopoly mengizinkan pemain melakukan perdagangan properti, uang tunai, dan kartu ``Get Out of Jail Free'' dengan pemain lain kapan saja. Seluruh kesepakatan bersifat pribadi dan harus disetujui oleh kedua belah pihak. Pemain tidak dapat meminjamkan uang secara langsung kepada pemain lain. Implementasi sistem trading interaktif merupakan fitur bonus yang dijabarkan pada Bab 3.
+
+\subsection{Kartu Chance dan Community Chest}
+
+Permainan memiliki dua deck kartu terpisah, masing-masing berisi 16 kartu. Ketika pemain mendarat di petak Chance atau Community Chest, pemain mengambil kartu paling atas dari deck yang sesuai dan mengikuti instruksinya secara langsung. Setelah instruksi dilaksanakan, kartu dikembalikan ke bagian bawah deck.
+
+Kartu ``Get Out of Jail Free'' merupakan pengecualian. Pemain dapat menyimpan kartu ini hingga ingin menggunakannya atau menjualnya ke pemain lain dengan harga yang disepakati.
+
+Jika kartu menginstruksikan pemain untuk berpindah ke petak lain dan pemain melewati GO dalam perjalanan, pemain menerima \$200 dari Bank. Jika kartu menginstruksikan pemain untuk masuk ke Jail, pemain tidak menerima \$200 meskipun melewati GO.
+
+Jenis instruksi yang umum terdapat pada kartu Chance dan Community Chest meliputi perpindahan posisi pemain ke petak tertentu, pembayaran uang kepada Bank atau pemain lain, penerimaan uang dari Bank, pengiriman ke Jail, dan pemberian kartu ``Get Out of Jail Free.''
+
+\subsection{Kondisi Kemenangan}
+
+Permainan berakhir ketika hanya tersisa satu pemain yang tidak bangkrut. Pemain terakhir yang tersisa dinyatakan sebagai pemenang. Seluruh pemain lain telah bangkrut dan keluar dari permainan.
+
+Dalam varian permainan cepat, kondisi kemenangan dapat dimodifikasi berdasarkan kesepakatan pemain sebelum permainan dimulai. Varian permainan cepat akan dijelaskan pada bagian Fitur Bonus.
+
+\section{Daftar Predicate/Command Utama}
+
+Bagian ini memuat daftar lengkap predicate dan command utama yang digunakan dalam implementasi permainan Monopoly. Setiap predicate dilengkapi dengan arity dan penjelasan fungsinya.
+
+\subsection{Predicate Inisialisasi dan Kontrol Permainan}
+
+Predicate pada kelompok ini bertanggung jawab untuk menginisialisasi permainan, mengelola siklus giliran, dan mengontrol alur permainan secara keseluruhan.
+
+\begin{table}[H]
+    \centering
+    \caption{Predicate Inisialisasi dan Kontrol Permainan}
+    \label{tab:predicate-init}
+    \scriptsize\begin{tabular}{@{}llp{8.5cm}@{}}
+        \toprule
+        \textbf{Predicate}       & \textbf{Arity} & \textbf{Penjelasan}                                                                                                                                   \\
+        \midrule
+        \texttt{start\_game/0}   & 0              & Memulai permainan baru. Menginisialisasi papan, pemain, dan deck kartu, kemudian memasuki main loop.                                                  \\
+        \midrule
+        \texttt{init\_game/0}    & 0              & Menginisialisasi state permainan. Memuat data papan, mengatur uang awal pemain, dan mengacak deck kartu.                                              \\
+        \midrule
+        \texttt{game\_loop/0}    & 0              & Main loop permainan. Berulang hingga hanya tersisa satu pemain yang tidak bangkrut.                                                                   \\
+        \midrule
+        \texttt{process\_turn/1} & 1              & Memproses satu giliran pemain. Menangani lemparan dadu, pergerakan, dan resolusi petak. Rekursif jika pemain mendapat giliran tambahan karena double. \\
+        \midrule
+        \texttt{next\_player/1}  & 1              & Memindahkan giliran ke pemain berikutnya secara searah jarum jam.                                                                                     \\
+        \midrule
+        \texttt{save\_game/0}    & 0              & Menyimpan seluruh state permainan ke file eksternal.                                                                                                  \\
+        \midrule
+        \texttt{load\_game/0}    & 0              & Memuat state permainan dari file eksternal.                                                                                                           \\
+        \bottomrule
+    \end{tabular}\normalsize
+\end{table}
+
+\subsection{Predicate Pergerakan dan Dadu}
+
+Predicate pada kelompok ini menangani mekanisme lemparan dadu dan pergerakan pemain di papan permainan.
+
+\begin{table}[H]
+    \centering
+    \caption{Predicate Pergerakan dan Dadu}
+    \label{tab:predicate-move}
+    \scriptsize\begin{tabular}{@{}llp{8.5cm}@{}}
+        \toprule
+        \textbf{Predicate}       & \textbf{Arity} & \textbf{Penjelasan}                                                                                                   \\
+        \midrule
+        \texttt{roll\_dice/1}    & 1              & Melempar 2 dadu dan mengembalikan hasilnya sebagai list \texttt{[D1, D2]}.                                            \\
+        \midrule
+        \texttt{move\_player/3}  & 3              & Menggerakkan pemain sejumlah langkah tertentu. Mentraverse list papan secara rekursif dan menangani efek melewati GO. \\
+        \midrule
+        \texttt{get\_position/2} & 2              & Mendapatkan posisi saat ini dari seorang pemain.                                                                      \\
+        \midrule
+        \texttt{set\_position/2} & 2              & Memperbarui posisi seorang pemain di papan.                                                                           \\
+        \midrule
+        \texttt{pass\_go/1}      & 1              & Mengecek dan menangani efek melewati petak GO. Menambahkan \$200 ke uang pemain.                                      \\
+        \bottomrule
+    \end{tabular}\normalsize
+\end{table}
+
+\subsection{Predicate Resolusi Petak}
+
+Predicate pada kelompok ini menangani aksi yang harus dilakukan ketika pemain mendarat di petak tertentu.
+
+\begin{table}[H]
+    \centering
+    \caption{Predicate Resolusi Petak}
+    \label{tab:predicate-resolve}
+    \scriptsize\begin{tabular}{@{}llp{8.5cm}@{}}
+        \toprule
+        \textbf{Predicate}                  & \textbf{Arity} & \textbf{Penjelasan}                                                                                  \\
+        \midrule
+        \texttt{handle\_space/2}            & 2              & Dispatch ke handler yang sesuai berdasarkan tipe petak yang diinjaki.                                \\
+        \midrule
+        \texttt{handle\_go/1}               & 1              & Menangani petak GO. Menambahkan \$200 ke uang pemain.                                                \\
+        \midrule
+        \texttt{handle\_property/2}         & 2              & Menangani petak properti. Mengecek kepemilikan dan memicu pembelian atau pembayaran sewa.            \\
+        \midrule
+        \texttt{handle\_station/2}          & 2              & Menangani petak stasiun. Mirip dengan properti tetapi sewa berdasarkan jumlah stasiun yang dimiliki. \\
+        \midrule
+        \texttt{handle\_utility/2}          & 2              & Menangani petak utilitas. Sewa dihitung dari hasil dadu dikalikan faktor pengali.                    \\
+        \midrule
+        \texttt{handle\_chance/1}           & 1              & Menangani petak Chance. Mengambil kartu dari deck dan mengeksekusi instruksinya.                     \\
+        \midrule
+        \texttt{handle\_community\_chest/1} & 1              & Menangani petak Community Chest. Mengambil kartu dari deck dan mengeksekusi instruksinya.            \\
+        \midrule
+        \texttt{handle\_tax/2}              & 2              & Menangani petak pajak. Mengurangi uang pemain sesuai nilai pajak.                                    \\
+        \midrule
+        \texttt{handle\_go\_to\_jail/1}     & 1              & Menangani petak Go to Jail. Mengirim pemain ke Jail dan mengakhiri giliran.                          \\
+        \midrule
+        \texttt{handle\_free\_parking/1}    & 1              & Menangani petak Free Parking. Tidak ada aksi.                                                        \\
+        \bottomrule
+    \end{tabular}\normalsize
+\end{table}
+
+\subsection{Predicate Properti dan Sewa}
+
+Predicate pada kelompok ini mengelola kepemilikan properti, pembelian, dan perhitungan sewa.
+
+\begin{table}[H]
+    \centering
+    \caption{Predicate Properti dan Sewa}
+    \label{tab:predicate-property}
+    \scriptsize\begin{tabular}{@{}llp{8.5cm}@{}}
+        \toprule
+        \textbf{Predicate}           & \textbf{Arity} & \textbf{Penjelasan}                                                         \\
+        \midrule
+        \texttt{buy\_property/2}     & 2              & Membeli properti dari Bank. Memvalidasi kepemilikan dan saldo uang pemain.  \\
+        \midrule
+        \texttt{calculate\_rent/3}   & 3              & Menghitung sewa berdasarkan properti, jumlah bangunan, dan status monopoli. \\
+        \midrule
+        \texttt{pay\_rent/3}         & 3              & Mentransfer uang sewa dari pemain yang mendarat ke pemilik properti.        \\
+        \midrule
+        \texttt{has\_monopoly/2}     & 2              & Mengecek apakah pemain memiliki semua properti dalam satu color group.      \\
+        \midrule
+        \texttt{get\_color\_group/2} & 2              & Mendapatkan daftar properti dalam color group yang sama.                    \\
+        \midrule
+        \texttt{get\_owner/2}        & 2              & Mendapatkan pemilik dari sebuah properti.                                   \\
+        \midrule
+        \texttt{set\_owner/2}        & 2              & Mengatur pemilik baru untuk sebuah properti.                                \\
+        \bottomrule
+    \end{tabular}\normalsize
+\end{table}
+
+\subsection{Predicate Pembangunan}
+
+Predicate pada kelompok ini mengelola pembangunan dan penjualan rumah serta hotel.
+
+\begin{table}[H]
+    \centering
+    \caption{Predicate Pembangunan}
+    \label{tab:predicate-build}
+    \scriptsize\begin{tabular}{@{}llp{8.5cm}@{}}
+        \toprule
+        \textbf{Predicate}              & \textbf{Arity} & \textbf{Penjelasan}                                                                                   \\
+        \midrule
+        \texttt{build\_house/2}         & 2              & Membangun rumah di properti. Memvalidasi even-build rule dan saldo uang.                              \\
+        \midrule
+        \texttt{build\_hotel/2}         & 2              & Menukar 4 rumah dengan 1 hotel. Memvalidasi kepemilikan 4 rumah di setiap properti dalam color group. \\
+        \midrule
+        \texttt{sell\_building/2}       & 2              & Menjual bangunan ke Bank dengan harga setengah. Memvalidasi even-build rule untuk penjualan.          \\
+        \midrule
+        \texttt{get\_building\_count/2} & 2              & Mendapatkan jumlah bangunan di sebuah properti.                                                       \\
+        \midrule
+        \texttt{set\_building\_count/3} & 3              & Mengatur jumlah bangunan di sebuah properti.                                                          \\
+        \midrule
+        \texttt{check\_even\_build/2}   & 2              & Memvalidasi aturan pembangunan merata dalam color group.                                              \\
+        \bottomrule
+    \end{tabular}\normalsize
+\end{table}
+
+\subsection{Predicate Mortgage}
+
+Predicate pada kelompok ini mengelola mekanisme mortgage dan pelepasan mortgage.
+
+\begin{table}[H]
+    \centering
+    \caption{Predicate Mortgage}
+    \label{tab:predicate-mortgage}
+    \scriptsize\begin{tabular}{@{}llp{8.5cm}@{}}
+        \toprule
+        \textbf{Predicate}              & \textbf{Arity} & \textbf{Penjelasan}                                                                                            \\
+        \midrule
+        \texttt{mortgage/1}             & 1              & Melakukan mortgage pada properti. Memvalidasi tidak ada bangunan dan menambahkan uang ke pemain.               \\
+        \midrule
+        \texttt{unmortgage/1}           & 1              & Melepaskan mortgage. Memvalidasi saldo dan mengurangi uang pemain sebesar nilai mortgage plus bunga 10 persen. \\
+        \midrule
+        \texttt{is\_mortgaged/1}        & 1              & Mengecek apakah sebuah properti sedang di-mortgage.                                                            \\
+        \midrule
+        \texttt{get\_mortgage\_value/2} & 2              & Mendapatkan nilai mortgage dari sebuah properti.                                                               \\
+        \bottomrule
+    \end{tabular}\normalsize
+\end{table}
+
+\subsection{Predicate Jail}
+
+Predicate pada kelompok ini mengelola mekanisme Jail termasuk masuk dan keluar Jail.
+
+\begin{table}[H]
+    \centering
+    \caption{Predicate Jail}
+    \label{tab:predicate-jail}
+    \scriptsize\begin{tabular}{@{}llp{8.5cm}@{}}
+        \toprule
+        \textbf{Predicate}          & \textbf{Arity} & \textbf{Penjelasan}                                                      \\
+        \midrule
+        \texttt{go\_to\_jail/1}     & 1              & Mengirim pemain ke Jail. Mengatur status jail dan memindahkan token.     \\
+        \midrule
+        \texttt{escape\_jail/2}     & 2              & Menangani upaya keluar dari Jail. Mendukung 4 metode keluar jail.        \\
+        \midrule
+        \texttt{pay\_jail\_fine/1}  & 1              & Keluar jail dengan membayar \$50.                                        \\
+        \midrule
+        \texttt{use\_jail\_card/1}  & 1              & Keluar jail menggunakan kartu Get Out of Jail Free.                      \\
+        \midrule
+        \texttt{roll\_for\_jail/2}  & 2              & Mencoba keluar jail dengan melempar double. Rekursif hingga 3 percobaan. \\
+        \midrule
+        \texttt{is\_in\_jail/1}     & 1              & Mengecek apakah pemain sedang di Jail.                                   \\
+        \midrule
+        \texttt{get\_jail\_turns/2} & 2              & Mendapatkan jumlah turn pemain di Jail.                                  \\
+        \bottomrule
+    \end{tabular}\normalsize
+\end{table}
+
+\subsection{Predicate Kartu dan Deck}
+
+Predicate pada kelompok ini mengelola deck kartu Chance dan Community Chest.
+
+\begin{table}[H]
+    \centering
+    \caption{Predicate Kartu dan Deck}
+    \label{tab:predicate-cards}
+    \scriptsize\begin{tabular}{@{}llp{8.5cm}@{}}
+        \toprule
+        \textbf{Predicate}         & \textbf{Arity} & \textbf{Penjelasan}                                                       \\
+        \midrule
+        \texttt{draw\_card/2}      & 2              & Mengambil kartu paling atas dari deck dan memindahkannya ke bagian bawah. \\
+        \midrule
+        \texttt{execute\_card/2}   & 2              & Mengeksekusi instruksi pada kartu yang ditarik.                           \\
+        \midrule
+        \texttt{shuffle\_deck/1}   & 1              & Mengacak urutan kartu dalam deck.                                         \\
+        \midrule
+        \texttt{has\_jail\_card/1} & 1              & Mengecek apakah pemain memiliki kartu Get Out of Jail Free.               \\
+        \bottomrule
+    \end{tabular}\normalsize
+\end{table}
+
+\subsection{Predicate Kebangkrutan dan Aset}
+
+Predicate pada kelompok ini mengelola pengecekan kebangkrutan dan perhitungan aset pemain.
+
+\begin{table}[H]
+    \centering
+    \caption{Predicate Kebangkrutan dan Aset}
+    \label{tab:predicate-bankruptcy}
+    \scriptsize\begin{tabular}{@{}llp{8.5cm}@{}}
+        \toprule
+        \textbf{Predicate}                & \textbf{Arity} & \textbf{Penjelasan}                                                                     \\
+        \midrule
+        \texttt{check\_bankruptcy/1}      & 1              & Mengecek apakah pemain bangkrut. Menghitung total aset dan membandingkan dengan hutang. \\
+        \midrule
+        \texttt{get\_player\_assets/2}    & 2              & Menghitung total aset pemain termasuk uang tunai, properti, dan bangunan.               \\
+        \midrule
+        \texttt{handle\_bankruptcy/2}     & 2              & Menangani proses kebangkrutan. Menyerahkan aset ke kreditur atau Bank.                  \\
+        \midrule
+        \texttt{is\_bankrupt/1}           & 1              & Mengecek apakah pemain sudah bangkrut.                                                  \\
+        \midrule
+        \texttt{count\_active\_players/1} & 1              & Menghitung jumlah pemain yang masih aktif dalam permainan.                              \\
+        \bottomrule
+    \end{tabular}\normalsize
+\end{table}
+
+\subsection{Predicate Utilitas dan Display}
+
+Predicate pada kelompok ini menyediakan fungsi utilitas dan tampilan informasi permainan.
+
+\begin{table}[H]
+    \centering
+    \caption{Predicate Utilitas dan Display}
+    \label{tab:predicate-util}
+    \scriptsize\begin{tabular}{@{}llp{8.5cm}@{}}
+        \toprule
+        \textbf{Predicate}                 & \textbf{Arity} & \textbf{Penjelasan}                                                              \\
+        \midrule
+        \texttt{display\_board/0}          & 0              & Merender papan permainan dalam format ASCII di terminal.                         \\
+        \midrule
+        \texttt{display\_player\_status/1} & 1              & Menampilkan status lengkap seorang pemain termasuk uang, properti, dan bangunan. \\
+        \midrule
+        \texttt{display\_property\_info/1} & 1              & Menampilkan informasi detail sebuah properti dari Title Deed.                    \\
+        \midrule
+        \texttt{get\_player\_money/2}      & 2              & Mendapatkan jumlah uang tunai seorang pemain.                                    \\
+        \midrule
+        \texttt{set\_player\_money/2}      & 2              & Mengatur jumlah uang tunai seorang pemain.                                       \\
+        \midrule
+        \texttt{get\_space\_type/2}        & 2              & Mendapatkan tipe dari sebuah petak di papan.                                     \\
+        \midrule
+        \texttt{get\_space\_name/2}        & 2              & Mendapatkan nama dari sebuah petak di papan.                                     \\
+        \bottomrule
+    \end{tabular}\normalsize
+\end{table}
+
+\section{Contoh Query dan Output}
+
+Bagian ini menunjukkan contoh interaksi dengan program Prolog melalui berbagai skenario permainan. Setiap contoh menampilkan query yang diketikkan pemain dan output yang dihasilkan oleh program.
+
+\subsection{Inisialisasi Permainan}
+
+Contoh berikut menunjukkan proses memulai permainan baru.
+
+\begin{tcblisting}{colback=gray!5, colframe=blue!40, fonttitle=\bfseries, title=Inisialisasi Permainan, listing only, listing options={basicstyle=\ttfamily\footnotesize, columns=fullflexible, keepspaces=true, breaklines=true}}
+    ?- start_game.
+
+    ========================================
+    MONOPOLY - Logika Komputasional
+    ========================================
+
+    Papan permainan dimuat (40 petak).
+    Deck Chance diacak (16 kartu).
+    Deck Community Chest diacak (16 kartu).
+
+    Player 1: $1500
+        Player 2: $1500
+
+    Giliran Player 1.
+    Tekan enter untuk lempar dadu...
+\end{tcblisting}
+
+\subsection{Melempar Dadu dan Bergerak}
+
+Contoh berikut menunjukkan pemain melempar dadu dan bergerak di papan.
+
+\begin{tcblisting}{colback=gray!5, colframe=blue!40, fonttitle=\bfseries, title=Melempar Dadu dan Bergerak, listing only, listing options={basicstyle=\ttfamily\footnotesize, columns=fullflexible, keepspaces=true, breaklines=true}}
+    ?- process_turn(1).
+
+    Player 1 melempar dadu: [3, 5] = 8
+    Player 1 bergerak dari GO ke St. Charles Place.
+
+    St. Charles Place - Properti tidak dimiliki.
+    Harga: $140
+        Saldo Player 1: $1500
+
+    Ingin membeli St. Charles Place? (y/n)
+\end{tcblisting}
+
+\subsection{Membeli Properti}
+
+Contoh berikut menunjukkan pemain membeli properti yang diinjaki.
+
+\begin{tcblisting}{colback=gray!5, colframe=blue!40, fonttitle=\bfseries, title=Membeli Properti, listing only, listing options={basicstyle=\ttfamily\footnotesize, columns=fullflexible, keepspaces=true, breaklines=true}}
+    Ingin membeli St. Charles Place? (y/n) y
+
+    Player 1 membeli St. Charles Place seharga $140.
+        Saldo Player 1: $1360
+
+    Title Deed St. Charles Place diberikan ke Player 1.
+    Giliran Player 1 selesai.
+\end{tcblisting}
+
+\subsection{Menolak Membeli}
+
+Contoh berikut menunjukkan pemain menolak membeli properti sehingga properti tetap tidak dimiliki.
+
+\begin{tcblisting}{colback=gray!5, colframe=blue!40, fonttitle=\bfseries, title=Menolak Membeli, listing only, listing options={basicstyle=\ttfamily\footnotesize, columns=fullflexible, keepspaces=true, breaklines=true}}
+    ?- process_turn(2).
+
+    Player 2 melempar dadu: [2, 4] = 6
+    Player 2 bergerak dari GO ke Vermont Ave.
+
+    Vermont Ave - Properti tidak dimiliki.
+    Harga: $100
+        Saldo Player 2: $1500
+
+    Ingin membeli Vermont Ave? (y/n) n
+
+    Vermont Ave tetap tidak dimiliki.
+    Giliran Player 2 selesai.
+\end{tcblisting}
+
+\subsection{Membayar Sewa}
+
+Contoh berikut menunjukkan pemain mendarat di properti milik pemain lain dan membayar sewa.
+
+\begin{tcblisting}{colback=gray!5, colframe=blue!40, fonttitle=\bfseries, title=Membayar Sewa, listing only, listing options={basicstyle=\ttfamily\footnotesize, columns=fullflexible, keepspaces=true, breaklines=true}}
+    ?- process_turn(2).
+
+    Player 2 melempar dadu: [4, 2] = 6
+    Player 2 bergerak dari GO ke St. Charles Place.
+
+    St. Charles Place dimiliki oleh Player 1.
+    Sewa dasar: $10
+        Player 2 membayar sewa $10 ke Player 1.
+
+    Saldo Player 2: $1490
+        Saldo Player 1: $1275
+
+    Giliran Player 2 selesai.
+\end{tcblisting}
+
+\subsection{Melempar Double dan Giliran Tambahan}
+
+Contoh berikut menunjukkan pemain mendapat giliran tambahan karena melempar double.
+
+\begin{tcblisting}{colback=gray!5, colframe=blue!40, fonttitle=\bfseries, title=Melempar Double dan Giliran Tambahan, listing only, listing options={basicstyle=\ttfamily\footnotesize, columns=fullflexible, keepspaces=true, breaklines=true}}
+    ?- process_turn(1).
+
+    Player 1 melempar dadu: [3, 3] = 6 (DOUBLE!)
+    Player 1 bergerak dari GO ke Oriental Ave.
+
+    Oriental Ave - Properti tidak dimiliki.
+    Harga: $100
+        Saldo Player 1: $1265
+
+    Ingin membeli Oriental Ave? (y/n) y
+
+    Player 1 membeli Oriental Ave seharga $100.
+        Saldo Player 1: $1165
+
+    Player 1 mendapat giliran tambahan (double).
+    Player 1 melempar dadu: [1, 4] = 5
+    Player 1 bergerak dari Oriental Ave ke Vermont Ave.
+
+    Vermont Ave dimiliki oleh Player 1.
+    Tidak ada aksi (properti sendiri).
+
+    Giliran Player 1 selesai.
+\end{tcblisting}
+
+\subsection{Triple Double dan Masuk Jail}
+
+Contoh berikut menunjukkan pemain masuk Jail karena melempar double tiga kali berturut-turut.
+
+\begin{tcblisting}{colback=gray!5, colframe=blue!40, fonttitle=\bfseries, title=Triple Double dan Masuk Jail, listing only, listing options={basicstyle=\ttfamily\footnotesize, columns=fullflexible, keepspaces=true, breaklines=true}}
+    ?- process_turn(1).
+
+    Player 1 melempar dadu: [2, 2] = 4 (DOUBLE!)
+    Player 1 bergerak dari GO ke Income Tax.
+    Income Tax: Player 1 membayar $200 ke Bank.
+        Saldo Player 1: $965
+
+    Player 1 mendapat giliran tambahan (double).
+    Player 1 melempar dadu: [5, 5] = 10 (DOUBLE!)
+    Player 1 bergerak dari Income Tax ke Vermont Ave.
+    Vermont Ave dimiliki oleh Player 1. Tidak ada aksi.
+
+    Player 1 mendapat giliran tambahan (double).
+    Player 1 melempar dadu: [1, 1] = 2 (DOUBLE ke-3!)
+
+    Player 1 masuk Jail!
+    Token Player 1 dipindahkan ke Jail.
+    Giliran Player 1 berakhir.
+\end{tcblisting}
+
+\subsection{Keluar dari Jail}
+
+Contoh berikut menunjukkan pemain keluar dari Jail dengan membayar denda.
+
+\begin{tcblisting}{colback=gray!5, colframe=blue!40, fonttitle=\bfseries, title=Keluar dari Jail (Bayar Denda), listing only, listing options={basicstyle=\ttfamily\footnotesize, columns=fullflexible, keepspaces=true, breaklines=true}}
+    ?- process_turn(1).
+
+    Player 1 berada di Jail.
+    Pilihan keluar Jail:
+    1. Bayar $50
+        2. Gunakan kartu Get Out of Jail Free
+        3. Lempar dadu (coba double, maks 3 percobaan)
+
+        Pilihan Anda: 1
+
+        Player 1 membayar $50 denda Jail.
+    Saldo Player 1: $915
+
+    Player 1 melempar dadu: [3, 4] = 7
+    Player 1 bergerak dari Jail ke St. Charles Place.
+    St. Charles Place dimiliki oleh Player 1. Tidak ada aksi.
+
+    Giliran Player 1 selesai.
+\end{tcblisting}
+
+\subsection{Keluar dari Jail dengan Double}
+
+Contoh berikut menunjukkan pemain keluar dari Jail dengan melempar double.
+
+\begin{tcblisting}{colback=gray!5, colframe=blue!40, fonttitle=\bfseries, title=Keluar dari Jail (Roll Double), listing only, listing options={basicstyle=\ttfamily\footnotesize, columns=fullflexible, keepspaces=true, breaklines=true}}
+    ?- process_turn(1).
+
+    Player 1 berada di Jail (percobaan ke-1).
+    Pilihan: lempar dadu untuk coba double.
+
+    Player 1 melempar dadu: [2, 5] = 7 (bukan double)
+    Player 1 tetap di Jail.
+
+    Pilihan: lempar lagi atau bayar $50?
+        Pilihan Anda: lempar
+
+        Player 1 melempar dadu: [4, 4] = 8 (DOUBLE!)
+        Player 1 keluar dari Jail!
+        Player 1 bergerak dari Jail ke Tennessee Ave.
+
+        Tennessee Ave - Properti tidak dimiliki.
+        Harga: $180
+    Saldo Player 1: $915
+
+    Ingin membeli Tennessee Ave? (y/n)
+\end{tcblisting}
+
+\subsection{Membangun Rumah}
+
+Contoh berikut menunjukkan pemain membangun rumah setelah mencapai monopoli.
+
+\begin{tcblisting}{colback=gray!5, colframe=blue!40, fonttitle=\bfseries, title=Membangun Rumah, listing only, listing options={basicstyle=\ttfamily\footnotesize, columns=fullflexible, keepspaces=true, breaklines=true}}
+    ?- build_house(1, 'St. Charles Place').
+
+    Player 1 memiliki monopoli color group Pink.
+    St. Charles Place: 0 rumah -> 1 rumah.
+    Biaya pembangunan: $100.
+        Saldo Player 1: $815.
+
+    Bangunan berhasil ditambahkan.
+\end{tcblisting}
+
+\subsection{Membangun Hotel}
+
+Contoh berikut menunjukkan pemain menukar 4 rumah dengan 1 hotel.
+
+\begin{tcblisting}{colback=gray!5, colframe=blue!40, fonttitle=\bfseries, title=Membangun Hotel, listing only, listing options={basicstyle=\ttfamily\footnotesize, columns=fullflexible, keepspaces=true, breaklines=true}}
+    ?- build_hotel(1, 'St. Charles Place').
+
+    St. Charles Place memiliki 4 rumah.
+    Menukar 4 rumah dengan 1 hotel.
+    Biaya hotel: $100.
+        Saldo Player 1: $415.
+
+    Hotel berhasil dibangun di St. Charles Place.
+    Sewa dengan hotel: $750.
+\end{tcblisting}
+
+\subsection{Melakukan Mortgage}
+
+Contoh berikut menunjukkan pemain melakukan mortgage untuk mendapatkan uang tunai.
+
+\begin{tcblisting}{colback=gray!5, colframe=blue!40, fonttitle=\bfseries, title=Melakukan Mortgage, listing only, listing options={basicstyle=\ttfamily\footnotesize, columns=fullflexible, keepspaces=true, breaklines=true}}
+    ?- mortgage('St. Charles Place').
+
+    St. Charles Place tidak memiliki bangunan.
+    Nilai mortgage: $70 (setengah dari harga $140).
+
+    Player 1 menerima $70 dari Bank.
+        Saldo Player 1: $485.
+
+    Title Deed St. Charles Place dibalik (mortgage).
+    Sewa tidak dapat dipungut dari properti ini.
+\end{tcblisting}
+
+\subsection{Melepaskan Mortgage}
+
+Contoh berikut menunjukkan pemain melepaskan mortgage.
+
+\begin{tcblisting}{colback=gray!5, colframe=blue!40, fonttitle=\bfseries, title=Melepaskan Mortgage, listing only, listing options={basicstyle=\ttfamily\footnotesize, columns=fullflexible, keepspaces=true, breaklines=true}}
+    ?- unmortgage('St. Charles Place').
+
+    Nilai mortgage: $70
+        Bunga 10%: $7
+        Total yang harus dibayar: $77
+
+    Saldo Player 1: $408
+    Title Deed St. Charles Place dibalik kembali (aktif).
+    Sewa dapat dipungut kembali.
+\end{tcblisting}
+
+\subsection{Kartu Chance dan Community Chest}
+
+Contoh berikut menunjukkan pemain mengambil kartu Chance.
+
+\begin{tcblisting}{colback=gray!5, colframe=blue!40, fonttitle=\bfseries, title=Kartu Chance, listing only, listing options={basicstyle=\ttfamily\footnotesize, columns=fullflexible, keepspaces=true, breaklines=true}}
+    ?- process_turn(1).
+
+    Player 1 melempar dadu: [2, 5] = 7
+    Player 1 bergerak dari GO ke Chance.
+
+    Player 1 mengambil kartu Chance:
+    "Maju ke GO. Kumpulkan $200."
+
+        Player 1 bergerak ke GO.
+        Player 1 menerima $200 dari Bank.
+    Saldo Player 1: $1700.
+
+    Kartu dikembalikan ke bagian bawah deck.
+    Giliran Player 1 selesai.
+\end{tcblisting}
+
+\subsection{Kebangkrutan}
+
+Contoh berikut menunjukkan pemain bangkrut karena tidak mampu membayar sewa.
+
+\begin{tcblisting}{colback=gray!5, colframe=blue!40, fonttitle=\bfseries, title=Kebangkrutan, listing only, listing options={basicstyle=\ttfamily\footnotesize, columns=fullflexible, keepspaces=true, breaklines=true}}
+    ?- process_turn(2).
+
+    Player 2 melempar dadu: [3, 6] = 9
+    Player 2 bergerak dari Baltic Ave ke St. Charles Place.
+
+    St. Charles Place dimiliki oleh Player 1.
+    Sewa dengan hotel: $750
+        Saldo Player 2: $500
+
+    Player 2 tidak mampu membayar sewa $750.
+        Player 2 menjual semua bangunan ke Bank.
+        Player 2 melakukan mortgage semua properti.
+        Total aset Player 2: $620.
+
+    Player 2 tetap tidak mampu membayar.
+    Player 2 BANGKRUT!
+
+    Aset Player 2 diserahkan ke Player 1.
+    Player 2 keluar dari permainan.
+
+    ========================================
+    Player 1 MENANG!
+    ========================================
+\end{tcblisting}
+
+\subsection{Menyimpan dan Memuat Permainan}
+
+Contoh berikut menunjukkan proses menyimpan dan memuat state permainan.
+
+\begin{tcblisting}{colback=gray!5, colframe=blue!40, fonttitle=\bfseries, title=Menyimpan Permainan, listing only, listing options={basicstyle=\ttfamily\footnotesize, columns=fullflexible, keepspaces=true, breaklines=true}}
+    ?- save_game.
+
+    State permainan disimpan ke 'savegame.txt'.
+    Data yang disimpan:
+    - Posisi pemain: Player 1 di Jail, Player 2 di GO
+    - Saldo: Player 1 $408, Player 2 $500
+    - Kepemilikan properti: 12 properti
+    - Status mortgage: 3 properti
+    - Deck Chance: 14 kartu tersisa
+    - Deck Community Chest: 16 kartu tersisa
+
+    Penyimpanan berhasil.
+\end{tcblisting}
+
+\begin{tcblisting}{colback=gray!5, colframe=blue!40, fonttitle=\bfseries, title=Memuat Permainan, listing only, listing options={basicstyle=\ttfamily\footnotesize, columns=fullflexible, keepspaces=true, breaklines=true}}
+    ?- load_game.
+
+    Memuat state dari 'savegame.txt'...
+
+    State berhasil dimuat.
+    Player 1: $408, posisi Jail
+        Player 2: $500, posisi GO
+    12 properti dimiliki.
+    3 properti di-mortgage.
+
+    Permainan dilanjutkan dari state tersimpan.
+    Giliran Player 1.
+\end{tcblisting}
+
+\subsection{Menampilkan Status Pemain}
+
+Contoh berikut menunjukkan cara melihat status lengkap seorang pemain.
+
+\begin{tcblisting}{colback=gray!5, colframe=blue!40, fonttitle=\bfseries, title=Status Pemain, listing only, listing options={basicstyle=\ttfamily\footnotesize, columns=fullflexible, keepspaces=true, breaklines=true}}
+    ?- display_player_status(1).
+
+    ========================================
+    Status Player 1
+    ========================================
+    Saldo: $1165
+    Posisi: Vermont Ave
+    Status: Aktif
+
+    Properti yang dimiliki:
+    - Oriental Ave (Light Blue) - 0 rumah
+    - Vermont Ave (Light Blue) - 0 rumah
+    - St. Charles Place (Pink) - Hotel
+    - Tennessee Ave (Orange) - 2 rumah
+    - New York Ave (Orange) - 2 rumah
+    - Reading Railroad - 0 depot
+    - Pennsylvania Railroad - 0 depot
+
+    Monopoli:
+    - Light Blue (2/2 properti)
+    - Pink (1/3 properti) - belum monopoli
+    - Orange (2/3 properti) - belum monopoli
+
+    Properti di-mortgage: 0
+    Kartu Get Out of Jail Free: 1
+    ========================================
+\end{tcblisting}
+
+\subsection{Melakukan Trading}
+
+Contoh berikut menunjukkan dua pemain melakukan perdagangan properti.
+
+\begin{tcblisting}{colback=gray!5, colframe=blue!40, fonttitle=\bfseries, title=Trading, listing only, listing options={basicstyle=\ttfamily\footnotesize, columns=fullflexible, keepspaces=true, breaklines=true}}
+    ?- trade(1, 2, ['Oriental Ave'], ['$200']).
+
+    Trade proposal:
+    Player 1 memberikan: Oriental Ave
+    Player 2 memberikan: $200
+
+        Player 2 menyetujui trade? (y/n) y
+
+        Trade berhasil!
+        Player 1 menerima $200. Saldo: $1365.
+    Player 2 menerima Oriental Ave.
+    Title Deed Oriental Ave ditransfer ke Player 2.
+\end{tcblisting}
+
+\subsection{Menampilkan Papan Permainan}
+
+Contoh berikut menunjukkan tampilan papan permainan dalam format ASCII.
+
+\begin{tcblisting}{colback=gray!5, colframe=blue!40, fonttitle=\bfseries, title=Papan Permainan (ASCII), listing only, listing options={basicstyle=\ttfamily\scriptsize, columns=fullflexible, keepspaces=true, breaklines=true}}
+    ?- display_board.
+
+    +-------+-------+-------+-------+-------+-------+-------+-------+-------+-------+-------+
+    |00 GO  |01 MED |02 CC  |03 BAL |04 TAX |05 RR  |06 ORI |07 CH  |08 VER |09 CON |10 JAIL|
+    +-------+-------+-------+-------+-------+-------+-------+-------+-------+-------+-------+
+    |39 BWD |                                                                       |11 STC |
+    +-------+                                                                       +-------+
+    |38 LUX |                                                                       |12 ELEC|
+    +-------+                                                                       +-------+
+    |37 PARK|                                                                       |13 STA |
+    +-------+                                                                       +-------+
+    |36 CH  |                                                                       |14 VIR |
+    +-------+                                                                       +-------+
+    |35 SHL |                                                                       |15 PRR |
+    +-------+                                                                       +-------+
+    |34 PENN|                                                                       |16 STJ |
+    +-------+                                                                       +-------+
+    |33 CC  |                                                                       |17 CC  |
+    +-------+                                                                       +-------+
+    |32 NC  |                                                                       |18 TENN|
+    +-------+                                                                       +-------+
+    |31 PAC |                                                                       |19 NY  |
+    +-------+-------+-------+-------+-------+-------+-------+-------+-------+-------+-------+
+    |30 G2J |29 MAR |28 WW  |27 VEN |26 ATL |25 B&O |24 ILL |23 IND |22 CH  |21 KEN |20 FP  |
+    +-------+-------+-------+-------+-------+-------+-------+-------+-------+-------+-------+
+
+    P1: 08 VER (Vermont Ave)
+    P2: 00 GO
+\end{tcblisting}

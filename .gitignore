@@ -216,3 +216,35 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# LaTeX
+*.aux
+*.bbl
+*.blg
+*.bcf
+*.fdb_latexmk
+*.fls
+*.log
+*.out
+*.synctex.gz
+*.toc
+*.run.xml
+*.pdf
+*.synctex
+*.nav
+*.snm
+*.vrb
+*.xdv
+*.bcf
+*.bbl
+*.blg
+*.run.xml
+*.synctex.gz
+*.synctex
+latexmkrc
+*.fls
+*.fdb_latexmk
+.minted*
+
+# Extra folder
+extra/
