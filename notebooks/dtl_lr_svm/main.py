@@ -83,8 +83,10 @@ def main():
 
     results = []
 
-    results.append(run_model("CART", CARTDecisionTree(max_depth=8, min_samples_split=10),
-                             X_train, y_train, X_test, test_ids, out_dir))
+    results.append(run_model("CART", CARTDecisionTree(
+        max_depth=None, min_samples_split=20, min_samples_leaf=5,
+        min_impurity_decrease=0.0001, ccp_alpha=0.0),
+        X_train, y_train, X_test, test_ids, out_dir))
 
     results.append(run_model("Logistic Regression",
                              LogisticRegressionScratch(learning_rate=0.1, n_iterations=5000),
