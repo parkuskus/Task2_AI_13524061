@@ -1,4 +1,4 @@
-"""Main runner for DTL, LR, SVM experiments."""
+"""Main runner for DTL (CART), Logistic Regression, SVM experiments."""
 
 import os
 import csv
@@ -8,6 +8,8 @@ sys.path.insert(0, os.path.dirname(__file__))
 
 from dataset_loader import load_dataset
 from dtl_cart import CARTDecisionTree
+from logreg import LogisticRegressionScratch
+from svm import LinearSVMScratch
 
 
 def macro_f1(y_true, y_pred):
@@ -39,10 +41,30 @@ def load_test_ids(data_dir, test_file="test.csv"):
     ids = []
     with open(test_path, "r") as f:
         reader = csv.reader(f)
-        next(reader)  # skip header
+        next(reader)
         for row in reader:
             ids.append(int(row[0]))
     return ids
+
+
+def run_model(name, model, X_train, y_train, X_test, test_ids, out_dir):
+    print(f"\n=== {name} ===")
+    model.fit(X_train, y_train)
+
+    train_pred = model.predict(X_train)
+    train_acc = (train_pred == y_train).mean()
+    train_f1 = macro_f1(y_train, train_pred)
+    print(f"Train accuracy: {train_acc:.4f}")
+    print(f"Train macro F1: {train_f1:.4f}")
+
+    test_pred = model.predict(X_test)
+    print(f"Test predictions: {dict(zip(*np.unique(test_pred, return_counts=True)))}")
+
+    sub_path = os.path.join(out_dir, f"{name.lower().replace(' ', '_')}_submission.csv")
+    save_submission(test_ids, test_pred, sub_path)
+    print(f"Saved: {sub_path}")
+
+    return train_acc, train_f1
 
 
 def main():
@@ -55,28 +77,26 @@ def main():
     print(f"Train: {X_train.shape}, Test: {X_test.shape}")
     print(f"Class distribution: {dict(zip(*np.unique(y_train, return_counts=True)))}")
 
-    # Train CART
-    print("\n=== CART Decision Tree ===")
-    tree = CARTDecisionTree(max_depth=8, min_samples_split=10)
-    tree.fit(X_train, y_train)
-
-    train_pred = tree.predict(X_train)
-    train_acc = (train_pred == y_train).mean()
-    train_f1 = macro_f1(y_train, train_pred)
-    print(f"Train accuracy: {train_acc:.4f}")
-    print(f"Train macro F1: {train_f1:.4f}")
-
-    # Predict test
-    test_pred = tree.predict(X_test)
-    test_ids = load_test_ids(base)
-
-    # Save submission
     out_dir = os.path.join(os.path.dirname(__file__), "..", "..", "submissions")
     os.makedirs(out_dir, exist_ok=True)
-    sub_path = os.path.join(out_dir, "cart_submission.csv")
-    save_submission(test_ids, test_pred, sub_path)
-    print(f"\nSubmission saved to {sub_path}")
-    print(f"Test predictions: {dict(zip(*np.unique(test_pred, return_counts=True)))}")
+    test_ids = load_test_ids(base)
+
+    results = []
+
+    results.append(run_model("CART", CARTDecisionTree(max_depth=8, min_samples_split=10),
+                             X_train, y_train, X_test, test_ids, out_dir))
+
+    results.append(run_model("Logistic Regression",
+                             LogisticRegressionScratch(learning_rate=0.1, n_iterations=5000),
+                             X_train, y_train, X_test, test_ids, out_dir))
+
+    results.append(run_model("SVM",
+                             LinearSVMScratch(learning_rate=0.1, n_iterations=5000),
+                             X_train, y_train, X_test, test_ids, out_dir))
+
+    print("\n=== Summary ===")
+    for i, (acc, f1) in enumerate(results):
+        print(f"{['CART', 'LogReg', 'SVM'][i]:>20}: Acc={acc:.4f}, F1={f1:.4f}")
 
 
 if __name__ == "__main__":
