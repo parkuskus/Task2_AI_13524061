@@ -3,11 +3,12 @@
 import os
 import csv
 import sys
+import numpy as np
 
 sys.path.insert(0, os.path.dirname(__file__))
 
 from dataset_loader import load_dataset
-from dtl_cart import CARTDecisionTree
+from dtl_cart import CARTDecisionTree, count_leaves
 from logreg import LogisticRegressionScratch
 from svm import LinearSVMScratch
 
@@ -79,7 +80,7 @@ def main():
     X_train, y_train = data["X_train"], data["y_train"]
     X_test = data["X_test"]
 
-    # Hold-out validation split for threshold optimization
+    # Hold-out validation split
     rng = np.random.RandomState(42)
     idx = np.arange(len(y_train))
     rng.shuffle(idx)
@@ -95,28 +96,86 @@ def main():
     os.makedirs(out_dir, exist_ok=True)
     test_ids = load_test_ids(base)
 
+    # --- CART Variant Comparison ---
+    print("\n" + "=" * 60)
+    print("  CART VARIANTS (Validation)")
+    print("=" * 60)
+
+    variants = [
+        ("Baseline (Gini, no prune)", CARTDecisionTree(
+            max_depth=10, min_samples_leaf=5, random_seed=42)),
+
+        ("Twoing criterion", CARTDecisionTree(
+            max_depth=10, min_samples_leaf=5, criterion="twoing", random_seed=42)),
+
+        ("F1 pruning (a=0.00005)", CARTDecisionTree(
+            max_depth=10, min_samples_leaf=5, ccp_alpha=0.00005,
+            f1_pruning=True, random_seed=42)),
+
+        ("F1 pruning (a=0.0001)", CARTDecisionTree(
+            max_depth=12, min_samples_leaf=3, ccp_alpha=0.0001,
+            f1_pruning=True, random_seed=42)),
+
+        ("min_leaf_class_1=2", CARTDecisionTree(
+            max_depth=10, min_samples_leaf=5, min_leaf_class_1=2, random_seed=42)),
+    ]
+
+    best_val_f1 = -1
+    best_name = None
+    best_model = None
+
+    for name, model in variants:
+        model.fit(X_tr, y_tr)
+        opt_t, val_f1 = model.optimize_threshold(X_val, y_val)
+        leaves = count_leaves(model.tree)
+        print(f"  {name:<32}: val_F1={val_f1:.4f}, opt_t={opt_t:.3f}, leaves={leaves}")
+        if val_f1 > best_val_f1:
+            best_val_f1 = val_f1
+            best_name = name
+            best_model = model
+
+    # --- Retrain best on full data + submit ---
+    print(f"\n=== SUBMISSION: {best_name} ===")
+    final_model = CARTDecisionTree(
+        max_depth=best_model.max_depth,
+        min_samples_split=best_model.min_samples_split,
+        min_samples_leaf=best_model.min_samples_leaf,
+        ccp_alpha=best_model.ccp_alpha,
+        criterion=best_model.criterion,
+        f1_pruning=best_model.f1_pruning,
+        min_leaf_class_1=best_model.min_leaf_class_1,
+        random_seed=42,
+    )
+    final_model.fit(X_train, y_train)
+    final_model.threshold = best_model.threshold
+
+    train_pred = final_model.predict(X_train)
+    train_acc = (train_pred == y_train).mean()
+    train_f1 = macro_f1(y_train, train_pred)
+    print(f"Full train accuracy: {train_acc:.4f}")
+    print(f"Full train macro F1: {train_f1:.4f}")
+    print(f"Threshold: {final_model.threshold:.3f}")
+
+    test_pred = final_model.predict(X_test)
+    print(f"Test predictions: {dict(zip(*np.unique(test_pred, return_counts=True)))}")
+
+    sub_path = os.path.join(out_dir, "cart_best_submission.csv")
+    save_submission(test_ids, test_pred, sub_path)
+    print(f"Saved: {sub_path}")
+
+    # --- LogReg & SVM ---
     results = []
-
-    # CART with weighted Gini + threshold optimization
-    results.append(run_model("CART", CARTDecisionTree(
-        max_depth=10, min_samples_split=10, min_samples_leaf=5,
-        class_weights={0: 1.0, 1: 4.0}, random_seed=42),
-        X_tr, y_tr, X_test, test_ids, out_dir,
-        X_val=X_val, y_val=y_val))
-
     results.append(run_model("Logistic Regression",
                              LogisticRegressionScratch(learning_rate=0.1, n_iterations=5000),
                              X_tr, y_tr, X_test, test_ids, out_dir))
-
     results.append(run_model("SVM",
                              LinearSVMScratch(learning_rate=0.1, n_iterations=5000),
                              X_tr, y_tr, X_test, test_ids, out_dir))
 
-    print("\n=== Summary ===")
+    print(f"\n  Best CART: {best_name}, val_F1={best_val_f1:.4f}")
     for i, (acc, f1) in enumerate(results):
-        print(f"{['CART', 'LogReg', 'SVM'][i]:>20}: Acc={acc:.4f}, F1={f1:.4f}")
+        print(f"{['LogReg', 'SVM'][i]:>20}: Acc={acc:.4f}, F1={f1:.4f}")
 
 
 if __name__ == "__main__":
-    import numpy as np
     main()
