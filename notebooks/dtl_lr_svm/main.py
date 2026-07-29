@@ -47,9 +47,14 @@ def load_test_ids(data_dir, test_file="test.csv"):
     return ids
 
 
-def run_model(name, model, X_train, y_train, X_test, test_ids, out_dir):
+def run_model(name, model, X_train, y_train, X_test, test_ids, out_dir,
+              X_val=None, y_val=None):
     print(f"\n=== {name} ===")
     model.fit(X_train, y_train)
+
+    if X_val is not None and y_val is not None and hasattr(model, 'optimize_threshold'):
+        opt_t, opt_f1 = model.optimize_threshold(X_val, y_val)
+        print(f"Optimized threshold: {opt_t:.3f} (val F1={opt_f1:.4f})")
 
     train_pred = model.predict(X_train)
     train_acc = (train_pred == y_train).mean()
@@ -74,8 +79,17 @@ def main():
     X_train, y_train = data["X_train"], data["y_train"]
     X_test = data["X_test"]
 
-    print(f"Train: {X_train.shape}, Test: {X_test.shape}")
-    print(f"Class distribution: {dict(zip(*np.unique(y_train, return_counts=True)))}")
+    # Hold-out validation split for threshold optimization
+    rng = np.random.RandomState(42)
+    idx = np.arange(len(y_train))
+    rng.shuffle(idx)
+    split = int(0.85 * len(y_train))
+    train_idx, val_idx = idx[:split], idx[split:]
+    X_tr, y_tr = X_train[train_idx], y_train[train_idx]
+    X_val, y_val = X_train[val_idx], y_train[val_idx]
+
+    print(f"Train: {X_tr.shape}, Val: {X_val.shape}, Test: {X_test.shape}")
+    print(f"Class dist (train): {dict(zip(*np.unique(y_tr, return_counts=True)))}")
 
     out_dir = os.path.join(os.path.dirname(__file__), "..", "..", "submissions")
     os.makedirs(out_dir, exist_ok=True)
@@ -83,18 +97,20 @@ def main():
 
     results = []
 
+    # CART with weighted Gini + threshold optimization
     results.append(run_model("CART", CARTDecisionTree(
-        max_depth=None, min_samples_split=20, min_samples_leaf=5,
-        min_impurity_decrease=0.0001, ccp_alpha=0.0),
-        X_train, y_train, X_test, test_ids, out_dir))
+        max_depth=10, min_samples_split=10, min_samples_leaf=5,
+        class_weights={0: 1.0, 1: 4.0}, random_seed=42),
+        X_tr, y_tr, X_test, test_ids, out_dir,
+        X_val=X_val, y_val=y_val))
 
     results.append(run_model("Logistic Regression",
                              LogisticRegressionScratch(learning_rate=0.1, n_iterations=5000),
-                             X_train, y_train, X_test, test_ids, out_dir))
+                             X_tr, y_tr, X_test, test_ids, out_dir))
 
     results.append(run_model("SVM",
                              LinearSVMScratch(learning_rate=0.1, n_iterations=5000),
-                             X_train, y_train, X_test, test_ids, out_dir))
+                             X_tr, y_tr, X_test, test_ids, out_dir))
 
     print("\n=== Summary ===")
     for i, (acc, f1) in enumerate(results):
