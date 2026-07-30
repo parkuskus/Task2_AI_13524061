@@ -1,4 +1,4 @@
-\documentclass[12pt,a4paper]{report}
+\documentclass[10pt,a4paper]{report}
 
 % ---------- Paket dasar ----------
 \usepackage[utf8]{inputenc}
@@ -35,6 +35,9 @@
 \usepackage{array} % untuk menentukan lebar kolom
 \usepackage{booktabs} % gaya tabel lebih elegan
 \usepackage[table]{xcolor}
+\usepackage{tocloft}
+\setlength{\cftbeforechapskip}{4pt}
+\setlength{\cftbeforesecskip}{1pt}
 
 % ---------- Paket TikZ untuk diagram ----------
 \usepackage{tikz}
@@ -43,10 +46,13 @@
 
 
 % Tambah jarak aman dari header dan footer:	
-\setlength{\headheight}{15pt}   % wajib cukup besar untuk fancyhdr
-\setlength{\headsep}{55pt}      % jarak header ke teks
-\setlength{\footskip}{28pt}     % jarak teks ke footer
-\usepackage[a4paper,top=3cm,bottom=3cm,left=3cm,right=3cm]{geometry}
+\setlength{\headheight}{20pt}   % wajib cukup besar untuk fancyhdr
+\setlength{\headsep}{30pt}      % jarak header ke teks
+\setlength{\footskip}{20pt}     % jarak teks ke footer
+\usepackage[a4paper,top=2.5cm,bottom=2cm,left=2cm,right=2cm]{geometry}
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt}
 
 % Semua gambar dari folder public dan subfoldernya
 \graphicspath{{public/}{public/01-pendahuluan/}{public/02-dasar-teori/}{public/03-implementasi/}}
@@ -137,10 +143,10 @@
 \tableofcontents
 \clearpage
 
-\chapter{Pendahuluan}
+\chapter{Pendahuludan}
 \input{sections/01-pendahuluan}
 
-\chapter{Spesifikasi Permainan}
+\chapter{Spesifikasi Masalah}
 \input{sections/02-spesifikasi-permainan}
 
 \chapter{Fitur Bonus}
