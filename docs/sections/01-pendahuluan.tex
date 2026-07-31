@@ -1,6 +1,34 @@
 \section{Pengantar Permasalahan}
 
+Kebijakan moneter merupakan salah satu instrumen utama negara dalam menjaga stabilitas ekonomi. Di Indonesia, kewajiban Bank Indonesia (BI) sebagai otoritas moneter berakar dari UU No. 23 Tahun 1999 tentang Bank Indonesia yang telah diubah beberapa kali, dengan perubahan terakhir melalui UU No. 4 Tahun 2023 tentang Pengembangan dan Penguatan Sektor Keuangan (UU P2SK). Pasal 9 angka 2 UU P2SK merumuskan tujuan Bank Indonesia sebagai berikut.
+
+\begin{quote}
+    \textit{Tujuan Bank Indonesia adalah mencapai stabilitas nilai rupiah, memelihara stabilitas Sistem Pembayaran, dan turut menjaga Stabilitas Sistem Keuangan dalam rangka mendukung pertumbuhan ekonomi yang berkelanjutan.}
+\end{quote}
+
+Stabilitas nilai rupiah dalam mandat tersebut secara eksplisit mencakup kestabilan harga barang dan jasa (inflasi) serta kestabilan nilai tukar rupiah terhadap mata uang negara lain, yang operasionalisasinya diatur lebih lanjut dalam Peraturan Bank Indonesia (PBI) No. 11 Tahun 2024 tentang Pengendalian Moneter yang menetapkan suku bunga acuan BI-Rate sebagai sasaran operasional utama kebijakan moneter. Pada 4 Juni 2026, DPR RI mengesahkan revisi lanjutan UU P2SK yang memperluas mandat BI untuk turut mendukung pertumbuhan ekonomi dan penciptaan lapangan kerja di samping tugas stabilisasi yang sudah ada, sehingga kebijakan moneter BI tidak dapat lagi dirancang semata-mata untuk menekan inflasi tetapi harus mempertimbangkan dampaknya terhadap sektor riil dan daya beli masyarakat.
+
+Mandat hukum di atas secara langsung menghasilkan sebuah \textit{trade-off} multi-objektif yang harus diselesaikan Gubernur BI setiap periode Rapat Dewan Gubernur (RDG). Menaikkan suku bunga akan menekan inflasi dan memperkuat rupiah, tetapi menekan \textit{output} dan daya beli serta memberatkan biaya utang pemerintah. Sebaliknya, menurunkan suku bunga akan mendorong \textit{output} dan daya beli, tetapi berisiko melemahkan rupiah dan memicu \textit{capital outflow}.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.5\textwidth]{rdg-bi.png}
+    \caption{Rapat Dewan Gubernur Bank Indonesia. Sumber}
+    \label{fig:rdg-bi}
+\end{figure}
+
+Sebagai ilustrasi kondisi riil yang dihadapi, pada RDG Juli 2026 BI mempertahankan BI-Rate di 5,75\% di tengah inflasi tahunan 3,34\% (naik dari 3,08\% bulan sebelumnya), nilai tukar rupiah di sekitar Rp17.885 per USD yang melemah 7,29\% \textit{year-to-date}, serta Indonesia baru mengalami defisit transaksi berjalan pertama setelah 72 bulan surplus berturut-turut. Kondisi ini terjadi ketika Federal Reserve AS menahan Fed Funds Rate di kisaran 3,50\% sampai 3,75\%, sehingga selisih suku bunga BI-Rate terhadap suku bunga AS menjadi pertimbangan penting untuk mencegah arus keluar modal asing.
+
+Dari uraian di atas, dapat terlihat bahwa keputusan suku bunga tidak berdiri sendiri per periode dan dampaknya menjalar melalui inflasi, \textit{output}, dan nilai tukar ke periode-periode berikutnya. Oleh karena itu, permasalahan ini dapat diformulasikan sebagai pencarian lintasan kebijakan (\textit{policy path}) optimal sepanjang horizon waktu tertentu. Hubungan antar-periode yang non-linear dan melibatkan banyak \textit{constraint} yang saling berinteraksi membuat permasalahan ini tidak memiliki solusi analitis tertutup. Lebih spesifik, permasalahan ini dapat diformulasikan sebagai persoalan \textit{local search} dengan mencari \textit{complete-state} berupa lintasan penuh yang memaksimalkan kesejahteraan sosial.
+
 \section{Tujuan Permasalahan}
 
-\section{Kerangka Teoretis terhadap Model Makroekonomi}
+Tujuan utama permasalahan ini adalah menentukan lintasan suku bunga acuan $s = (r_1, r_2, \dots, r_T)$ yang memaksimalkan kesejahteraan gabungan dari stabilitas harga, stabilitas nilai tukar, dan daya beli masyarakat. Horizon kebijakan yang digunakan adalah $T = 8$ periode kuartalan (dua tahun ke depan), dimulai dari kondisi aktual BI-Rate per Juli 2026. Tiap $r_t$ harus berada dalam rentang 3,00\% sampai 8,00\% dengan kelipatan 25 basis poin sesuai konvensi RDG BI. Lintasan $s$ harus memenuhi enam \textit{constraint} yang mencerminkan kondisi neraca keuangan riil Indonesia. Secara formal, permasalahan dinyatakan sebagai pencarian state optimal pada ruang feasible $\mathcal{S}$.
 
+\[
+    s^{*} = \arg\max_{s \,\in\, \mathcal{S}} J(s)
+\]
+
+Fungsi objektif $J(s)$ merupakan negatif dari \textit{quadratic loss function} yang mengukur total deviasi variabel makroekonomi dari targetnya sepanjang horizon $T$. Semakin mendekati nol nilai $J(s)$, semakin optimal lintasan tersebut dalam menyeimbangkan inflasi, \textit{output}, daya beli, dan stabilitas suku bunga.
+
+\section{Kerangka Teoretis Model Makroekonomi}
