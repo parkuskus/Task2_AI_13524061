@@ -32,7 +32,7 @@ Permasalahan ini dibatasi oleh enam \textit{constraint} yang merepresentasikan k
     \left| r_t - r_{t-1} \right| \leq 50 \text{ bps} \qquad \forall t
 \]
 
-Bank sentral secara empiris menghindari perubahan suku bunga yang terlalu agresif karena dapat mengguncang ekspektasi pasar dan merusak kredibilitas \textit{forward guidance} (Woodford, 2003). \textit{Constraint} ini membatasi perubahan antar kuartal maksimum sebesar 50 basis poin atau 0,50\%.
+Bank sentral secara empiris menghindari perubahan suku bunga yang terlalu agresif karena dapat mengguncang ekspektasi pasar dan merusak kredibilitas \textit{forward guidance} \cite{woodford2003}. \textit{Constraint} ini membatasi perubahan antar kuartal maksimum sebesar 50 basis poin atau 0,50\%.
 
 \textbf{C3. Selisih Minimum terhadap Fed Funds Rate.}
 
@@ -93,7 +93,7 @@ Nilai $J(s)$ dihitung melalui dua langkah. Pertama, state $s$ disimulasikan pada
 
 \subsection{\textit{Loss Function} Teoretik}
 
-\textit{Loss function} $L(s)$ mengikuti kerangka \textit{quadratic loss function} Svensson (1997) yang menjadi standar analisis kebijakan bank sentral. Secara konseptual, $L(s)$ mengukur total ``kerugian'' atau deviasi variabel makroekonomi dari targetnya sepanjang horizon kebijakan. Setiap komponen dihitung sebagai kuadrat deviasi, sehingga deviasi besar dikenakan penalti yang jauh lebih berat daripada deviasi kecil (sifat kuadratik). Perumusan ini mencerminkan preferensi bank sentral yang lebih memilih deviasi kecil di banyak periode dibandingkan satu deviasi besar di satu periode.
+\textit{Loss function} $L(s)$ mengikuti kerangka \textit{quadratic loss function} Svensson \cite{svensson1997} yang menjadi standar analisis kebijakan bank sentral. Secara konseptual, $L(s)$ mengukur total ``kerugian'' atau deviasi variabel makroekonomi dari targetnya sepanjang horizon kebijakan. Setiap komponen dihitung sebagai kuadrat deviasi, sehingga deviasi besar dikenakan penalti yang jauh lebih berat daripada deviasi kecil (sifat kuadratik). Perumusan ini mencerminkan preferensi bank sentral yang lebih memilih deviasi kecil di banyak periode dibandingkan satu deviasi besar di satu periode.
 
 \[
     L(s) = \sum_{t=1}^{T} \delta^{t} \Big[\, w_\pi (\pi_t - \pi^{*})^2 + w_y \, y_t^{2} + w_{pp} (PP_t - PP^{*})^2 + w_r (r_t - r_{t-1})^2 \,\Big]
