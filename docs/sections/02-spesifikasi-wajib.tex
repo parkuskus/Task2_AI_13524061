@@ -163,6 +163,34 @@ Initial state $s_0$ dibentuk secara acak dengan titik awal $r_0$ mengacu pada ko
     w_{r}   & = 0{,}2 &  & \text{Bobot \textit{interest rate smoothing}}
 \end{align*}
 
+\section{\textit{Model Evaluation Metric}}
+
+Kualitas solusi akhir tidak dapat diukur dari $J_{penalized}(s)$ saja, karena nilai $J(s)$ dipengaruhi oleh bobot $w$ dan $\delta$ yang meskipun bersifat tetap, merepresentasikan satu konfigurasi preferensi spesifik. Diperlukan metrik evaluasi yang berdiri di luar fungsi objektif, bersifat netral, dan langsung mengukur seberapa dekat \textit{trajectory} inflasi terhadap target kebijakan. Metrik tersebut adalah \textbf{\textit{Root Mean Square Deviation} (RMSD)}.
+
+Sebelum membahas RMSD, perlu diklarifikasi pemisahan antara komponen yang bersifat tetap (\textit{fixed}) dan komponen yang bebas diatur (\textit{free}) dalam eksperimen.
+
+\begin{itemize}
+    \item \textit{Komponen tetap.} Seluruh parameter yang tertuang dalam \texttt{environment.json} pada Bagian 14 spesifikasi bersifat wajib dan tidak boleh diubah. Ini mencakup parameter struktural model ($\kappa, \beta, \phi, \rho_y, \rho_\pi, \rho_e, \alpha_1, \alpha_2, \rho_{fiskal}$), kondisi awal ($r_0, \pi_0, y_0, e_0, r_0^{US}$), target ($\pi^{*}, PP^{*}$), parameter \textit{constraint} ($r_{min}, r_{max}, \Delta_{min}, \theta, \sigma_{max}$), bobot fungsi objektif ($w_\pi, w_y, w_{pp}, w_r$), faktor diskonto ($\delta$), horizon ($T$), dan protokol \textit{shock} (\texttt{seed = 42}). Lingkungan simulasi yang identik menjamin perbedaan nilai RMSD semata-mata mencerminkan perbedaan kualitas algoritma, bukan perbedaan ``dunia'' yang disimulasikan.
+    \item \textit{Komponen bebas.} Hal-hal yang dapat divariasikan hanyalah aspek yang berkaitan dengan algoritma \textit{local search} itu sendiri, yaitu pilihan algoritma (Hill-Climbing, Simulated Annealing, atau Genetic Algorithm), jumlah iterasi (\texttt{max\_iter}), jumlah generasi dan ukuran populasi untuk GA, suhu awal dan laju pendinginan untuk SA, probabilitas mutasi, strategi seleksi, serta \textit{random seed} untuk inisialisasi state dan pemilihan \textit{neighbor}. Variasi pada komponen bebas inilah yang menghasilkan nilai $J(s)$ dan RMSD yang berbeda antar eksperimen meskipun ekonomi yang disimulasikan identik.
+\end{itemize}
+RMSD$_{\pi}$ mengukur akar rata-rata kuadrat deviasi inflasi dari target $\pi^{*} = 2{,}5\%$ sepanjang horizon $T = 8$. Metrik ini tidak melibatkan bobot, diskonto, maupun penalti \textit{constraint}, sehingga murni mengukur seberapa dekat \textit{trajectory} inflasi terhadap target.
+\[
+    \text{RMSD}_{\pi} = \sqrt{\frac{1}{T} \sum_{t=1}^{T} (\pi_t - \pi^{*})^{2}}
+\]
+Secara implementatif, RMSD$_{\pi}$ dihitung setelah \texttt{simulate\_economy} menghasilkan \textit{trajectory}.
+\[
+    \texttt{rmsd\_pi = np.sqrt(np.mean((traj["pi"] - pi\_star)**2))}
+\]
+
+Nilai RMSD$_{\pi}$ bersifat non-negatif, dengan nol sebagai nilai terbaik (inflasi tepat di target sepanjang seluruh horizon). Semakin kecil RMSD$_{\pi}$, semakin baik state suku bunga yang ditemukan. Berdasarkan karakteristik numerik dari parameter dan \textit{shock} yang ditetapkan, interpretasi kualitatif nilai RMSD$_{\pi}$ adalah sebagai berikut.
+
+\begin{itemize}
+    \item $\text{RMSD}_{\pi} < 0{,}50$ dinilai sangat baik. Inflasi rata-rata hanya menyimpang kurang dari setengah poin persentase dari target, menunjukkan algoritma \textit{local search} berhasil menemukan state yang efektif menavigasi \textit{trade-off} kebijakan.
+    \item $0{,}50 \leq \text{RMSD}_{\pi} < 1{,}00$ dinilai baik dan masih dalam rentang toleransi sasaran inflasi $\pm 1\%$.
+    \item $\text{RMSD}_{\pi} \geq 1{,}00$ dinilai buruk karena rata-rata deviasi inflasi melampaui batas toleransi resmi, mengindikasikan algoritma terjebak pada solusi yang tidak memenuhi \textit{constraint} C6 atau gagal mengeksplorasi ruang state secara memadai.
+\end{itemize}
+
+Selain RMSD$_{\pi}$, dapat pula dihitung RMSD$_{y}$ terhadap target $y^{*} = 0$ dan RMSD$_{PP}$ terhadap target $PP^{*} = 0$ untuk analisis lebih lanjut. Namun dalam konteks perbandingan utama, hanya RMSD$_{\pi}$ yang digunakan.
 
 \section{Daftar Command Utama}
 
@@ -246,6 +274,16 @@ Fungsi utama yang menghitung nilai $J_{penalized}(s)$ untuk sebuah state. Fungsi
     \item \texttt{params} (dict) seluruh parameter model, \textit{constraint}, dan bobot ($w_\pi, w_y, w_{pp}, w_r, \delta$, serta parameter yang dibutuhkan \texttt{simulate\_economy} dan \texttt{check\_constraints}).
     \item \texttt{mu} (float) bobot penalti \textit{constraint}, default 100.
     \item \textit{Return} \texttt{float} nilai $J_{penalized}(s) = -L(s) - \mu \sum_{i=3}^{6} \text{violation}_i(s)^2$.
+\end{itemize}
+
+\texttt{compute\_rmsd(trajectory, pi\_star=2.5)}
+
+Menghitung RMSD$_{\pi}$ dari \textit{trajectory} hasil simulasi. Fungsi ini murni menghitung metrik evaluasi tanpa melibatkan bobot subjektif atau penalti \textit{constraint}.
+
+\begin{itemize}
+    \item \texttt{trajectory} (dict) hasil simulasi dari \texttt{simulate\_economy}, minimal mengandung kunci \texttt{"pi"}.
+    \item \texttt{pi\_star} (float) target inflasi, default $2{,}5$.
+    \item \textit{Return} \texttt{float} nilai RMSD$_{\pi} = \sqrt{\frac{1}{T} \sum (\pi_t - \pi^{*})^{2}}$.
 \end{itemize}
 
 \subsection*{Fase 3. Pencarian \textit{Local Search}}
@@ -352,7 +390,7 @@ Contoh berikut menggunakan seluruh parameter standar dari Bagian 14 spesifikasi.
 \subsection*{Contoh 1. Inisialisasi Parameter dan \textit{Shock}}
 
 \begin{tcolorbox}[title=Input]
-\begin{lstlisting}[language=Python]
+    \begin{lstlisting}[language=Python]
 import numpy as np
 
 T = 8
@@ -377,14 +415,14 @@ shocks = generate_shocks(T=T, seed=42)
 Pemanggilan \texttt{generate\_initial\_state} menghasilkan state acak yang memenuhi C1 dan C2.
 
 \begin{tcolorbox}[title=Input]
-\begin{lstlisting}[language=Python]
+    \begin{lstlisting}[language=Python]
 rng = np.random.default_rng(42)
 s0 = generate_initial_state(T=8, r_min=3.0, r_max=8.0, rng=rng)
 \end{lstlisting}
 \end{tcolorbox}
 
 \begin{tcolorbox}[title=Output]
-\begin{lstlisting}[language=Python]
+    \begin{lstlisting}[language=Python]
 >>> s0
 [6.00, 6.25, 6.25, 6.00, 5.75, 5.50, 5.25, 5.25]
 \end{lstlisting}
@@ -395,13 +433,13 @@ s0 = generate_initial_state(T=8, r_min=3.0, r_max=8.0, rng=rng)
 State $s_0$ disimulasikan pada model makroekonomi untuk memperoleh \textit{trajectory} variabel.
 
 \begin{tcolorbox}[title=Input]
-\begin{lstlisting}[language=Python]
+    \begin{lstlisting}[language=Python]
 traj = simulate_economy(s0, shocks, params)
 \end{lstlisting}
 \end{tcolorbox}
 
 \begin{tcolorbox}[title=Output]
-\begin{lstlisting}[language=Python, basicstyle=\ttfamily\tiny]
+    \begin{lstlisting}[language=Python, basicstyle=\ttfamily\tiny]
 >>> for t in range(T):
 ...     print(f"t={t+1}: r={s0[t]:.2f}%  y={traj['y'][t]:+.2f}  "
 ...           f"pi={traj['pi'][t]:.2f}%  e={traj['e'][t]:.0f}  "
@@ -421,14 +459,15 @@ t=8: r=5.25%  y=+0.13  pi=2.55%  e=17185  PP=-2.43  CA=+0.07%
 \subsection*{Contoh 4. Evaluasi Objective dan \textit{Constraint}}
 
 \begin{tcolorbox}[title=Input]
-\begin{lstlisting}[language=Python]
+    \begin{lstlisting}[language=Python]
 result = check_constraints(s0, traj, params)
 score = compute_objective(s0, shocks, params)
+rmsd = compute_rmsd(traj, pi_star=2.5)
 \end{lstlisting}
 \end{tcolorbox}
 
 \begin{tcolorbox}[title=Output]
-\begin{lstlisting}[language=Python]
+    \begin{lstlisting}[language=Python]
 >>> result["feasible"]
 True
 
@@ -437,13 +476,16 @@ True
 
 >>> score
 -8.935
+
+>>> rmsd
+0.476
 \end{lstlisting}
 \end{tcolorbox}
 
 \subsection*{Contoh 5. Menjalankan Ketiga Algoritma}
 
 \begin{tcolorbox}[title=Input]
-\begin{lstlisting}[language=Python]
+    \begin{lstlisting}[language=Python]
 rng = np.random.default_rng(42)
 s0 = generate_initial_state(T=8, r_min=3.0, r_max=8.0, rng=rng)
 
@@ -459,11 +501,18 @@ result_sa = simulated_annealing(sa_s0, max_iter=1000, T0=10.0,
 result_ga = genetic_algorithm(pop_size=50, generations=200,
                                mutation_rate=0.15, shocks=shocks,
                                params=params)
+
+rmsd_hc = compute_rmsd(simulate_economy(result_hc["best_state"],
+                       shocks, params))
+rmsd_sa = compute_rmsd(simulate_economy(result_sa["best_state"],
+                       shocks, params))
+rmsd_ga = compute_rmsd(simulate_economy(result_ga["best_state"],
+                       shocks, params))
 \end{lstlisting}
 \end{tcolorbox}
 
 \begin{tcolorbox}[title=Output]
-\begin{lstlisting}[language=Python]
+    \begin{lstlisting}[language=Python]
 >>> print(f"HC  : J={result_hc['best_score']:.4f}  "
 ...       f"state={result_hc['best_state']}")
 HC  : J=-8.9352  state=[6.00, 6.25, 6.25, 6.00, 5.75, 5.50, 5.25, 5.25]
@@ -481,7 +530,7 @@ GA  : J=-4.9571  state=[5.75, 5.50, 5.25, 5.00, 5.00, 4.75, 4.75, 4.75]
 \subsection*{Contoh 6. Konvergensi \textit{Loss} per Iterasi}
 
 \begin{tcolorbox}[title=Output (nilai $J(s)$ pada beberapa iterasi terpilih)]
-\begin{lstlisting}[language=Python]
+    \begin{lstlisting}[language=Python]
 === Hill-Climbing Convergence (max_iter=1000) ===
 Iter    10: J(s) = -9.2431
 Iter    50: J(s) = -9.0124
@@ -502,18 +551,19 @@ T= 0.033  Iter  1000: J(s) = -5.1826  best=-5.1823  (SA TERMINATED)
 \subsection*{Contoh 7. Perbandingan Akhir Tiga Algoritma}
 
 \begin{tcolorbox}[title=Output (Ringkasan Perbandingan)]
-\begin{lstlisting}[language=Python]
-============================================================
-           J(s)       #Eval   Waktu(s)   Feasible   pi_T
-------------------------------------------------------------
-Hill-Climbing   -8.9352      523      2.14       YES   2.55%
-Sim. Annealing  -5.1823     1000      4.08       YES   2.48%
-Genetic Algo.   -4.9571     10000*    5.73       YES   2.47%
-------------------------------------------------------------
+    \begin{lstlisting}[language=Python]
+===================================================================
+           J(s)     RMSD_pi   #Eval   Waktu(s)  Feasible  pi_T
+-------------------------------------------------------------------
+HC        -8.9352    0.476      523      2.14      YES     2.55%
+SA        -5.1823    0.241     1000      4.08      YES     2.48%
+GA        -4.9571    0.218    10000*     5.73      YES     2.47%
+-------------------------------------------------------------------
 *GA: 50 individu x 200 generasi
 
-Best overall: Genetic Algorithm (J = -4.9571)
-pi_T terbaik: Genetic Algorithm (2.47%, paling dekat 2.50%)
+Best J(s):        Genetic Algorithm (-4.9571)
+Best RMSD_pi:     Genetic Algorithm (0.218)
+Interpretasi:     0.218 < 0.50 -> SANGAT BAIK
 \end{lstlisting}
 \end{tcolorbox}
 
