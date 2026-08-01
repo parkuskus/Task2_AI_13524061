@@ -6,7 +6,7 @@ DEFAULT_PARAMS = {
     "pi0": 3.34,
     "y0": 0.00,
     "e0": 17885,
-    # r_US: time-varying Fed Funds Rate (easing lanjutan lalu hiking)
+    # r_US: time-varying Fed Funds Rate
     "r_US": [3.375, 3.125, 3.125, 3.125, 3.375, 3.625, 3.875, 4.125],
 
     # target
