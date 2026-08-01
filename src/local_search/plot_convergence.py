@@ -1,5 +1,3 @@
-# plot_convergence.py — visualisasi konvergensi J(s) ketiga algoritma
-
 import numpy as np
 import matplotlib.pyplot as plt
 from config import DEFAULT_PARAMS
@@ -43,8 +41,10 @@ def main():
     ax.axhline(y=hc["best_score"], color="red", linestyle="--",
                label=f"Best = {hc['best_score']:.2f}")
     ax.set_title(f"Hill-Climbing ({hc['iterations']} evals)")
-    ax.set_xlabel("Evaluasi"); ax.set_ylabel("J(s)")
-    ax.legend(); ax.grid(alpha=0.3)
+    ax.set_xlabel("Evaluasi")
+    ax.set_ylabel("J(s)")
+    ax.legend()
+    ax.grid(alpha=0.3)
 
     ax = axes[0, 1]
     ax.plot(sa["history"], color="#ff7f0e", linewidth=0.5, alpha=0.7)
@@ -52,16 +52,20 @@ def main():
     ax.plot(best_sofar, color="red", linewidth=1.0,
             label=f"Best = {sa['best_score']:.2f}")
     ax.set_title(f"Simulated Annealing ({sa['iterations']} evals)")
-    ax.set_xlabel("Evaluasi"); ax.set_ylabel("J(s)")
-    ax.legend(); ax.grid(alpha=0.3)
+    ax.set_xlabel("Evaluasi")
+    ax.set_ylabel("J(s)")
+    ax.legend()
+    ax.grid(alpha=0.3)
 
     ax = axes[1, 0]
     ax.plot(ga["history"], color="#2ca02c", linewidth=1.0)
     ax.axhline(y=ga["best_score"], color="red", linestyle="--",
                label=f"Best = {ga['best_score']:.2f}")
     ax.set_title(f"Genetic Algorithm ({ga['iterations']} gens)")
-    ax.set_xlabel("Generasi"); ax.set_ylabel("Best J(s) per Generasi")
-    ax.legend(); ax.grid(alpha=0.3)
+    ax.set_xlabel("Generasi")
+    ax.set_ylabel("Best J(s) per Generasi")
+    ax.legend()
+    ax.grid(alpha=0.3)
 
     ax = axes[1, 1]
     ax.plot(hc["history"], color="#1f77b4", alpha=0.4, linewidth=0.5,
@@ -71,8 +75,10 @@ def main():
     ax.plot(ga["history"], color="#2ca02c", linewidth=1.2,
             label="GA (best per gen)")
     ax.set_title("Perbandingan Konvergensi")
-    ax.set_xlabel("Evaluasi / Generasi"); ax.set_ylabel("J(s)")
-    ax.legend(fontsize=8); ax.grid(alpha=0.3)
+    ax.set_xlabel("Evaluasi / Generasi")
+    ax.set_ylabel("J(s)")
+    ax.legend(fontsize=8)
+    ax.grid(alpha=0.3)
 
     plt.tight_layout()
     plt.savefig("convergence.png", dpi=150, bbox_inches="tight")
@@ -91,7 +97,7 @@ def main():
             f"{traj['pi'][-1]:>7.2f}% {res['iterations']:>8}"
         )
     print("-" * 70)
-    print(f"\nPlot saved: convergence.png")
+    print("\nPlot saved: convergence.png")
 
 
 if __name__ == "__main__":

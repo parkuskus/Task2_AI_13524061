@@ -1,5 +1,3 @@
-# search.neighbors — successor function (Move 1, Move 2, Move 3)
-
 import numpy as np
 from config import DEFAULT_PARAMS
 from search.utils import round_to_bps, clip_state

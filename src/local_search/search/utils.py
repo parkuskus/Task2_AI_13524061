@@ -1,5 +1,3 @@
-# search.utils — fungsi utilitas untuk local search
-
 import numpy as np
 from config import DEFAULT_PARAMS
 

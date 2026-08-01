@@ -1,5 +1,3 @@
-# search.genetic_algorithm — Genetic Algorithm
-
 import numpy as np
 from config import DEFAULT_PARAMS
 from search.utils import generate_initial_state

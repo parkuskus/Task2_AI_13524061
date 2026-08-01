@@ -1,5 +1,3 @@
-# evaluation.metrics — metrik evaluasi (RMSD)
-
 import numpy as np
 
 

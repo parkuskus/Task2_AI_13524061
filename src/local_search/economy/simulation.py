@@ -1,5 +1,3 @@
-# economy.simulation — simulasi model makroekonomi IS-PC-UIP
-
 import numpy as np
 from config import DEFAULT_PARAMS
 from economy.shocks import generate_shocks

@@ -1,5 +1,3 @@
-# evaluation.constraints — validasi constraint C1-C5
-
 from config import DEFAULT_PARAMS
 
 

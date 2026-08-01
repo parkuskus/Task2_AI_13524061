@@ -1,5 +1,3 @@
-# search.simulated_annealing — Simulated Annealing
-
 import numpy as np
 import math
 from search.neighbors import generate_neighbor

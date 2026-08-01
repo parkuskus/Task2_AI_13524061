@@ -1,5 +1,3 @@
-# config.py — parameter tetap environment.json
-
 DEFAULT_PARAMS = {
     # kondisi awal
     "r0": 5.75,

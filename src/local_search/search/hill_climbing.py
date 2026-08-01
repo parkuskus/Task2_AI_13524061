@@ -1,5 +1,3 @@
-# search.hill_climbing — Hill-Climbing
-
 import numpy as np
 from search.neighbors import generate_neighbor
 from evaluation.objective import compute_objective

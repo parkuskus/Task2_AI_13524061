@@ -1,5 +1,3 @@
-# evaluation.objective — perhitungan fungsi objektif J_penalized(s)
-
 from config import DEFAULT_PARAMS
 from economy.simulation import simulate_economy
 from evaluation.constraints import check_constraints

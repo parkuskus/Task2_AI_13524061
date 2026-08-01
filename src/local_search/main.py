@@ -1,5 +1,3 @@
-# main.py — demo Fase 1, 2, dan 3
-
 import numpy as np
 from config import DEFAULT_PARAMS
 from economy.shocks import generate_shocks
@@ -19,13 +17,11 @@ def main():
     shocks = generate_shocks(T=T, seed=42)
     rng = np.random.default_rng(42)
 
-    # ─── Hill-Climbing (single start) ───────────────────────────────
     s0 = generate_initial_state(T=T, rng=rng)
     print(f"HC   start: {s0}")
     hc_single = hill_climbing(s0, max_iter=2000, shocks=shocks,
                                params=params, patience=500)
 
-    # ─── Hill-Climbing (multi-restart) ──────────────────────────────
     best_hc = hill_climbing(s0, max_iter=2000, shocks=shocks,
                              params=params, patience=500)
     for restart in range(10):
@@ -37,18 +33,15 @@ def main():
             best_hc = hc_r
     hc = best_hc
 
-    # ─── Simulated Annealing ────────────────────────────────────────
     print(f"SA   start: {s0}")
     sa = simulated_annealing(s0, max_iter=5000, T0=50.0,
                               cooling_rate=0.998, shocks=shocks,
                               params=params)
 
-    # ─── Genetic Algorithm ──────────────────────────────────────────
     ga = genetic_algorithm(pop_size=100, generations=300,
                             mutation_rate=0.25, shocks=shocks,
                             params=params)
 
-    # ─── Evaluasi ───────────────────────────────────────────────────
     results = []
     for name, res in [
         ("HC-single", hc_single),
@@ -70,7 +63,6 @@ def main():
         if not cons["feasible"]:
             print(f"Violations: {cons['violations']}")
 
-    # ─── Perbandingan ───────────────────────────────────────────────
     print("\n" + "=" * 75)
     print(f"{'':<20} {'J(s)':>10} {'RMSD_pi':>10} {'Feasible':>10} {'pi_T':>8}")
     print("-" * 75)
