@@ -8,8 +8,10 @@ def hill_climbing(s0, max_iter=1000, shocks=None, params=None, patience=200):
 
     current = list(s0)
     best = list(s0)
+    initial_state = list(s0)
     score, _, _ = compute_objective(current, shocks, params)
     best_score = score
+    initial_score = score
 
     history = [score]
     no_improve = 0
@@ -38,4 +40,6 @@ def hill_climbing(s0, max_iter=1000, shocks=None, params=None, patience=200):
         "best_score": best_score,
         "history": history,
         "iterations": len(history),
+        "initial_state": initial_state,
+        "initial_score": initial_score,
     }

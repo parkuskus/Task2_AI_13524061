@@ -27,8 +27,11 @@ def genetic_algorithm(pop_size=50, generations=200, mutation_rate=0.15,
     population = [generate_initial_state(T=T, rng=rng) for _ in range(pop_size)]
     scores = [compute_objective(ind, shocks, params)[0] for ind in population]
 
-    best_state = list(population[0])
-    best_score = scores[0]
+    idx_init = int(np.argmax(scores))
+    initial_state = list(population[idx_init])
+    initial_score = scores[idx_init]
+    best_state = list(population[idx_init])
+    best_score = scores[idx_init]
     history = []
 
     for gen in range(generations):
@@ -70,4 +73,6 @@ def genetic_algorithm(pop_size=50, generations=200, mutation_rate=0.15,
         "best_score": best_score,
         "history": history,
         "iterations": generations,
+        "initial_state": initial_state,
+        "initial_score": initial_score,
     }

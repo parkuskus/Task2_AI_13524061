@@ -11,6 +11,8 @@ def simulated_annealing(s0, max_iter=1000, T0=10.0, cooling_rate=0.995,
     current = list(s0)
     score, _, _ = compute_objective(current, shocks, params)
 
+    initial_state = list(s0)
+    initial_score = score
     best = list(current)
     best_score = score
 
@@ -38,4 +40,6 @@ def simulated_annealing(s0, max_iter=1000, T0=10.0, cooling_rate=0.995,
         "best_score": best_score,
         "history": history,
         "iterations": len(history),
+        "initial_state": initial_state,
+        "initial_score": initial_score,
     }

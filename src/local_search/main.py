@@ -42,6 +42,17 @@ def main():
                             mutation_rate=0.25, shocks=shocks,
                             params=params)
 
+    def _print_snapshots(history, max_show=15):
+        n = len(history)
+        if n <= max_show:
+            idxs = list(range(n))
+        else:
+            idxs = [int(round(i * (n - 1) / (max_show - 1))) for i in range(max_show)]
+            idxs = sorted(set(idxs))
+        for i in idxs:
+            label = "Init" if i == 0 else ("Final" if i == n - 1 else f"Iter {i}")
+            print(f"  {label:>6}: J(s) = {history[i]:.4f}")
+
     results = []
     for name, res in [
         ("HC-single", hc_single),
@@ -53,16 +64,21 @@ def main():
         cons = check_constraints(res["best_state"], traj, params)
         rmsd = compute_rmsd(traj)
         results.append((name, res, traj, cons, rmsd))
-        print(f"\n=== {name} ===")
-        print(f"J(s)      : {res['best_score']:.4f}")
-        print(f"RMSD_pi   : {rmsd:.4f}")
-        print(f"Feasible  : {cons['feasible']}")
+        print("\n") 
+        print(f"=== {name} ===")
+        print(f"State awal : {res['initial_state']}")
+        print(f"J(s) awal  : {res['initial_score']:.4f}")
+        print(f"State akhir: {res['best_state']}")
+        print(f"J(s) akhir : {res['best_score']:.4f}")
+        print(f"RMSD_pi    : {rmsd:.4f}")
+        print(f"Feasible   : {cons['feasible']}")
         print(f"Iterations : {res['iterations']}")
-        print(f"Best state: {res['best_state']}")
-        print(f"pi_T      : {traj['pi'][-1]:.2f}%")
+        print(f"pi_T       : {traj['pi'][-1]:.2f}%")
         if not cons["feasible"]:
             v_str = {k: f"{v:.4f}" for k, v in cons["violations"].items()}
-            print(f"Violations: {v_str}")
+            print(f"Violations : {v_str}")
+        print(f"J(s) per iterasi:")
+        _print_snapshots(res["history"])
 
     print("\n" + "=" * 75)
     print(f"{'':<20} {'J(s)':>10} {'RMSD_pi':>10} {'Feasible':>10} {'pi_T':>8}")
