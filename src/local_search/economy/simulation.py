@@ -1,8 +1,8 @@
-# simulation.py — simulasi model makroekonomi IS-PC-UIP
+# economy.simulation — simulasi model makroekonomi IS-PC-UIP
 
 import numpy as np
 from config import DEFAULT_PARAMS
-from shocks import generate_shocks
+from economy.shocks import generate_shocks
 
 
 def simulate_economy(s, shocks=None, params=None):

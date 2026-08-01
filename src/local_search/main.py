@@ -2,13 +2,15 @@
 
 import numpy as np
 from config import DEFAULT_PARAMS
-from shocks import generate_shocks
-from simulation import simulate_economy
-from evaluation import check_constraints, compute_objective, compute_rmsd
-from utils import generate_initial_state
-from hill_climbing import hill_climbing
-from simulated_annealing import simulated_annealing
-from genetic_algorithm import genetic_algorithm
+from economy.shocks import generate_shocks
+from economy.simulation import simulate_economy
+from evaluation.constraints import check_constraints
+from evaluation.objective import compute_objective
+from evaluation.metrics import compute_rmsd
+from search.utils import generate_initial_state
+from search.hill_climbing import hill_climbing
+from search.simulated_annealing import simulated_annealing
+from search.genetic_algorithm import genetic_algorithm
 
 
 def main():
@@ -27,7 +29,8 @@ def main():
     best_hc = hill_climbing(s0, max_iter=2000, shocks=shocks,
                              params=params, patience=500)
     for restart in range(10):
-        s_r = generate_initial_state(T=T, rng=np.random.default_rng(100 + restart))
+        s_r = generate_initial_state(T=T,
+                                      rng=np.random.default_rng(100 + restart))
         hc_r = hill_climbing(s_r, max_iter=2000, shocks=shocks,
                               params=params, patience=500)
         if hc_r["best_score"] > best_hc["best_score"]:

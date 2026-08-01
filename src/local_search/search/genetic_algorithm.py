@@ -1,15 +1,10 @@
-# genetic_algorithm.py — Genetic Algorithm
+# search.genetic_algorithm — Genetic Algorithm
 
 import numpy as np
 from config import DEFAULT_PARAMS
-from utils import generate_initial_state
-from neighbors import generate_neighbor, generate_neighbor_crossover
-from evaluation import compute_objective
-
-
-def _evaluate(s, shocks, params):
-    score, _, _ = compute_objective(s, shocks, params)
-    return list(s), score
+from search.utils import generate_initial_state
+from search.neighbors import generate_neighbor, generate_neighbor_crossover
+from evaluation.objective import compute_objective
 
 
 def _tournament_select(population, scores, k=3, rng=None):
@@ -53,7 +48,6 @@ def genetic_algorithm(pop_size=50, generations=200, mutation_rate=0.15,
         while len(new_population) < pop_size:
             p1 = _tournament_select(population, scores, k=3, rng=rng)
             p2 = _tournament_select(population, scores, k=3, rng=rng)
-
             c1, c2 = generate_neighbor_crossover(p1, p2, rng=rng)
 
             if rng.random() < mutation_rate:

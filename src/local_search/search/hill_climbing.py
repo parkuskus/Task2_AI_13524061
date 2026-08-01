@@ -1,8 +1,8 @@
-# hill_climbing.py — Hill-Climbing
+# search.hill_climbing — Hill-Climbing
 
 import numpy as np
-from neighbors import generate_neighbor
-from evaluation import compute_objective
+from search.neighbors import generate_neighbor
+from evaluation.objective import compute_objective
 
 
 def hill_climbing(s0, max_iter=1000, shocks=None, params=None, patience=200):

@@ -1,15 +1,14 @@
-# simulated_annealing.py — Simulated Annealing
+# search.simulated_annealing — Simulated Annealing
 
 import numpy as np
 import math
-from evaluation import compute_objective
+from search.neighbors import generate_neighbor
+from evaluation.objective import compute_objective
 
 
 def simulated_annealing(s0, max_iter=1000, T0=10.0, cooling_rate=0.995,
                          shocks=None, params=None):
     rng = np.random.default_rng()
-
-    from neighbors import generate_neighbor
 
     current = list(s0)
     score, _, _ = compute_objective(current, shocks, params)
@@ -20,7 +19,7 @@ def simulated_annealing(s0, max_iter=1000, T0=10.0, cooling_rate=0.995,
     T = T0
     history = [score]
 
-    for iteration in range(1, max_iter + 1):
+    for _ in range(1, max_iter + 1):
         neighbor = generate_neighbor(current, rng=rng)
         n_score, _, _ = compute_objective(neighbor, shocks, params)
 

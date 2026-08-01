@@ -1,8 +1,8 @@
-# neighbors.py — successor function (Move 1, Move 2, Move 3)
+# search.neighbors — successor function (Move 1, Move 2, Move 3)
 
 import numpy as np
 from config import DEFAULT_PARAMS
-from utils import round_to_bps, clip_state
+from search.utils import round_to_bps, clip_state
 
 
 def generate_neighbor(s, move_type=None, rng=None):

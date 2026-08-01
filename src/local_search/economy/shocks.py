@@ -1,4 +1,4 @@
-# shocks.py — pembangkitan guncangan stokastik
+# economy.shocks — pembangkitan guncangan stokastik
 
 import numpy as np
 

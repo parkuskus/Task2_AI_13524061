@@ -3,13 +3,15 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from config import DEFAULT_PARAMS
-from shocks import generate_shocks
-from evaluation import compute_objective, check_constraints, compute_rmsd
-from simulation import simulate_economy
-from utils import generate_initial_state
-from hill_climbing import hill_climbing
-from simulated_annealing import simulated_annealing
-from genetic_algorithm import genetic_algorithm
+from economy.shocks import generate_shocks
+from economy.simulation import simulate_economy
+from evaluation.constraints import check_constraints
+from evaluation.objective import compute_objective
+from evaluation.metrics import compute_rmsd
+from search.utils import generate_initial_state
+from search.hill_climbing import hill_climbing
+from search.simulated_annealing import simulated_annealing
+from search.genetic_algorithm import genetic_algorithm
 
 
 def main():
@@ -23,7 +25,6 @@ def main():
     score0, _, _ = compute_objective(s0, shocks, params)
     print(f"Initial J(s)   : {score0:.4f}")
 
-    # ─── Run All Algorithms ─────────────────────────────────────────
     hc = hill_climbing(s0, max_iter=2000, shocks=shocks,
                         params=params, patience=500)
 
@@ -35,43 +36,33 @@ def main():
                             mutation_rate=0.25, shocks=shocks,
                             params=params)
 
-    # ─── Plot: Convergence ──────────────────────────────────────────
     fig, axes = plt.subplots(2, 2, figsize=(14, 10))
 
-    # --- Subplot 1: Hill-Climbing ---
     ax = axes[0, 0]
     ax.plot(hc["history"], color="#1f77b4", linewidth=0.8)
     ax.axhline(y=hc["best_score"], color="red", linestyle="--",
                label=f"Best = {hc['best_score']:.2f}")
     ax.set_title(f"Hill-Climbing ({hc['iterations']} evals)")
-    ax.set_xlabel("Evaluasi")
-    ax.set_ylabel("J(s)")
-    ax.legend()
-    ax.grid(alpha=0.3)
+    ax.set_xlabel("Evaluasi"); ax.set_ylabel("J(s)")
+    ax.legend(); ax.grid(alpha=0.3)
 
-    # --- Subplot 2: Simulated Annealing ---
     ax = axes[0, 1]
     ax.plot(sa["history"], color="#ff7f0e", linewidth=0.5, alpha=0.7)
     best_sofar = np.maximum.accumulate(sa["history"])
-    ax.plot(best_sofar, color="red", linewidth=1.0, label=f"Best = {sa['best_score']:.2f}")
+    ax.plot(best_sofar, color="red", linewidth=1.0,
+            label=f"Best = {sa['best_score']:.2f}")
     ax.set_title(f"Simulated Annealing ({sa['iterations']} evals)")
-    ax.set_xlabel("Evaluasi")
-    ax.set_ylabel("J(s)")
-    ax.legend()
-    ax.grid(alpha=0.3)
+    ax.set_xlabel("Evaluasi"); ax.set_ylabel("J(s)")
+    ax.legend(); ax.grid(alpha=0.3)
 
-    # --- Subplot 3: Genetic Algorithm ---
     ax = axes[1, 0]
     ax.plot(ga["history"], color="#2ca02c", linewidth=1.0)
     ax.axhline(y=ga["best_score"], color="red", linestyle="--",
                label=f"Best = {ga['best_score']:.2f}")
     ax.set_title(f"Genetic Algorithm ({ga['iterations']} gens)")
-    ax.set_xlabel("Generasi")
-    ax.set_ylabel("Best J(s) per Generasi")
-    ax.legend()
-    ax.grid(alpha=0.3)
+    ax.set_xlabel("Generasi"); ax.set_ylabel("Best J(s) per Generasi")
+    ax.legend(); ax.grid(alpha=0.3)
 
-    # --- Subplot 4: All Three Overlay ---
     ax = axes[1, 1]
     ax.plot(hc["history"], color="#1f77b4", alpha=0.4, linewidth=0.5,
             label="Hill-Climbing")
@@ -80,16 +71,13 @@ def main():
     ax.plot(ga["history"], color="#2ca02c", linewidth=1.2,
             label="GA (best per gen)")
     ax.set_title("Perbandingan Konvergensi")
-    ax.set_xlabel("Evaluasi / Generasi")
-    ax.set_ylabel("J(s)")
-    ax.legend(fontsize=8)
-    ax.grid(alpha=0.3)
+    ax.set_xlabel("Evaluasi / Generasi"); ax.set_ylabel("J(s)")
+    ax.legend(fontsize=8); ax.grid(alpha=0.3)
 
     plt.tight_layout()
     plt.savefig("convergence.png", dpi=150, bbox_inches="tight")
     plt.show()
 
-    # ─── Summary ────────────────────────────────────────────────────
     print("\n" + "=" * 70)
     print(f"{'Algoritma':<20} {'J(s)':>10} {'RMSD_pi':>10} {'Feasible':>10} {'pi_T':>8} {'Evals':>8}")
     print("-" * 70)
