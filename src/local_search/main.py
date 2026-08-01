@@ -45,7 +45,7 @@ def main():
     results = []
     for name, res in [
         ("HC-single", hc_single),
-        ("HC-10restart", hc),
+        ("HC-10 restart", hc),
         ("SA", sa),
         ("GA", ga),
     ]:
@@ -61,7 +61,8 @@ def main():
         print(f"Best state: {res['best_state']}")
         print(f"pi_T      : {traj['pi'][-1]:.2f}%")
         if not cons["feasible"]:
-            print(f"Violations: {cons['violations']}")
+            v_str = {k: f"{v:.4f}" for k, v in cons["violations"].items()}
+            print(f"Violations: {v_str}")
 
     print("\n" + "=" * 75)
     print(f"{'':<20} {'J(s)':>10} {'RMSD_pi':>10} {'Feasible':>10} {'pi_T':>8}")

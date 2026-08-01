@@ -75,7 +75,7 @@ Untuk algoritma \textit{Hill-Climbing} dan \textit{Simulated Annealing}, tetangg
 
 \subsection{Definisi \textit{Objective Function}}
 
-Fungsi objektif $J(s)$ adalah ukuran kuantitatif yang menentukan seberapa baik sebuah state $s$ dalam menyeimbangkan tiga tujuan kebijakan moneter Bank Indonesia, yaitu stabilitas harga, stabilitas nilai tukar, dan daya beli masyarakat. \textit{Local search} bertugas mencari state yang memaksimalkan $J(s)$ pada ruang state $\mathcal{S}$ yang memenuhi seluruh \textit{constraint} C1 sampai C6.
+Fungsi objektif $J(s)$ adalah ukuran kuantitatif yang menentukan seberapa baik sebuah state $s$ dalam menyeimbangkan tiga tujuan kebijakan moneter Bank Indonesia, yaitu stabilitas harga, stabilitas nilai tukar, dan daya beli masyarakat. \textit{Local search} bertugas mencari state yang memaksimalkan $J(s)$ pada ruang state $\mathcal{S}$ yang memenuhi seluruh \textit{constraint} C1 sampai C5.
 
 \[
     s^{*} = \arg\max_{s \,\in\, \mathcal{S}} J(s)
@@ -102,12 +102,12 @@ Bobot $w_\pi, w_y, w_{pp}, w_r$ menentukan prioritas relatif antar tujuan kebija
 \textit{Loss function} final yang digunakan dalam implementasi adalah $J_{penalized}(s)$, yaitu negatif dari $L(s)$ yang telah ditambah penalti \textit{constraint}. Negasi dilakukan karena algoritma \textit{local search} secara konvensional bekerja dengan memaksimalkan fungsi objektif, sedangkan $L(s)$ adalah fungsi yang ingin diminimalkan.
 
 \[
-    J_{penalized}(s) = -L(s) - \sum_{i=3}^{5} \mu_i \cdot \max\!\big(0,\; \text{violation}_i(s)\big)^2
+    J_{penalized}(s) = -L(s) - \mu \sum_{i=3}^{5} \max\!\big(0,\; \text{violation}_i(s)\big)^2
 \]
 
 Suku pertama, $-L(s)$, adalah negatif dari \textit{quadratic loss} yang mengubah permasalahan minimisasi $L(s)$ menjadi maksimisasi. Seluruh suku pada $L(s)$ bernilai non-negatif karena berbentuk kuadrat, sehingga $J(s) = -L(s) \leq 0$ untuk semua $s$. Nilai $J(s)$ yang semakin mendekati nol menandakan \textit{trajectory} ekonomi yang semakin dekat ke target. Nilai maksimum teoretis $J(s) = 0$ hanya tercapai jika semua deviasi sama dengan nol di seluruh periode, kondisi yang secara praktis mustahil karena kehadiran guncangan stokastik $\epsilon_t$.
 
-Suku kedua adalah penalti untuk \textit{constraint} C3 sampai C5 yang dilanggar. Pendekatan \textit{penalty method} dipilih karena \textit{constraint} C3 sampai C5 melibatkan variabel hasil simulasi sehingga tidak dapat diverifikasi sebelum simulasi dijalankan, berbeda dengan C1 dan C2 yang dapat dicek langsung dari vektor $s$. Setiap \textit{constraint} $i \in \{3, 4, 5\}$ memiliki pelanggaran $\text{violation}_i(s)$ yang dihitung sebagai berikut.
+Suku kedua adalah penalti untuk \textit{constraint} C3 sampai C5 yang dilanggar. Pendekatan \textit{penalty method} dipilih karena \textit{constraint} C3 sampai C5 melibatkan variabel hasil simulasi sehingga tidak dapat diverifikasi sebelum simulasi dijalankan, berbeda dengan C1 dan C2 yang dapat dicek langsung dari vektor $s$. Bobot penalti $\mu$ ditetapkan sebesar 100, cukup besar untuk mendominasi perbaikan pada $L(s)$ sehingga algoritma terdorong kuat menuju region \textit{feasible} sebelum melakukan \textit{fine-tuning} terhadap nilai $J(s)$. State yang memenuhi seluruh \textit{constraint} memiliki suku penalti nol sehingga $J_{penalized}(s) = -L(s)$. Setiap \textit{constraint} $i \in \{3, 4, 5\}$ memiliki pelanggaran $\text{violation}_i(s)$ yang dihitung sebagai berikut.
 
 \begin{align*}
     \text{violation}_3(s) & = \max_{t}\!\big(0,\ -\theta - CA_t\big)                   \\
@@ -115,7 +115,7 @@ Suku kedua adalah penalti untuk \textit{constraint} C3 sampai C5 yang dilanggar.
     \text{violation}_5(s) & = \max\!\big(0,\ |\pi_T - \pi^{*}| - 1\%\big)
 \end{align*}
 
-Pelanggaran dikuadratkan agar pelanggaran besar dikenakan penalti yang jauh lebih berat daripada pelanggaran kecil, mendorong algoritma untuk memprioritaskan perbaikan pada \textit{constraint} yang paling parah dilanggar. Bobot penalti $\mu_i$ ditetapkan sebesar 100 untuk seluruh $i$, cukup besar untuk mendominasi perbaikan pada $L(s)$ sehingga algoritma terdorong kuat menuju region \textit{feasible} sebelum melakukan \textit{fine-tuning} terhadap nilai $J(s)$. State yang memenuhi seluruh \textit{constraint} memiliki suku penalti nol sehingga $J_{penalized}(s) = -L(s)$.
+Pelanggaran dikuadratkan agar pelanggaran besar dikenakan penalti yang jauh lebih berat daripada pelanggaran kecil, mendorong algoritma untuk memprioritaskan perbaikan pada \textit{constraint} yang paling parah dilanggar.
 
 
 \section{Formulasi \textit{Initial State}}
@@ -178,7 +178,7 @@ Nilai RMSD$_{\pi}$ bersifat non-negatif, dengan nol sebagai nilai terbaik (infla
 \begin{itemize}
     \item $\text{RMSD}_{\pi} < 0{,}50$ dinilai sangat baik. Inflasi rata-rata hanya menyimpang kurang dari setengah poin persentase dari target, menunjukkan algoritma \textit{local search} berhasil menemukan state yang efektif menavigasi \textit{trade-off} kebijakan.
     \item $0{,}50 \leq \text{RMSD}_{\pi} < 1{,}00$ dinilai baik dan masih dalam rentang toleransi sasaran inflasi $\pm 1\%$.
-    \item $\text{RMSD}_{\pi} \geq 1{,}00$ dinilai buruk karena rata-rata deviasi inflasi melampaui batas toleransi resmi, mengindikasikan algoritma terjebak pada solusi yang tidak memenuhi \textit{constraint} C6 atau gagal mengeksplorasi ruang state secara memadai.
+    \item $\text{RMSD}_{\pi} \geq 1{,}00$ dinilai buruk karena rata-rata deviasi inflasi melampaui batas toleransi resmi, mengindikasikan algoritma terjebak pada solusi yang tidak memenuhi \textit{constraint} C5 atau gagal mengeksplorasi ruang state secara memadai.
 \end{itemize}
 
 Selain RMSD$_{\pi}$, dapat pula dihitung RMSD$_{y}$ terhadap target $y^{*} = 0$ dan RMSD$_{PP}$ terhadap target $PP^{*} = 0$ untuk analisis lebih lanjut. Namun dalam konteks perbandingan utama, hanya RMSD$_{\pi}$ yang digunakan.
@@ -246,7 +246,7 @@ Menghitung proksi imbal hasil Surat Berharga Negara.
 
 \texttt{check\_constraints(s, trajectory, params)}
 
-Memvalidasi seluruh \textit{constraint} C1 sampai C6 terhadap sebuah state dan \textit{trajectory} simulasinya, serta menghitung besar pelanggaran untuk penalti fungsi objektif.
+Memvalidasi seluruh \textit{constraint} C1 sampai C5 terhadap sebuah state dan \textit{trajectory} simulasinya, serta menghitung besar pelanggaran untuk penalti fungsi objektif.
 
 \begin{itemize}
     \item \texttt{s} (list[float]) state suku bunga.

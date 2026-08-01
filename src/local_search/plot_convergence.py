@@ -84,19 +84,33 @@ def main():
     plt.savefig("convergence.png", dpi=150, bbox_inches="tight")
     plt.show()
 
-    print("\n" + "=" * 70)
-    print(f"{'Algoritma':<20} {'J(s)':>10} {'RMSD_pi':>10} {'Feasible':>10} {'pi_T':>8} {'Evals':>8}")
-    print("-" * 70)
+    results = []
     for name, res in [("HC", hc), ("SA", sa), ("GA", ga)]:
         traj = simulate_economy(res["best_state"], shocks, params)
         cons = check_constraints(res["best_state"], traj, params)
         rmsd = compute_rmsd(traj)
+        results.append((name, res, traj, cons, rmsd))
+        print(f"\n=== {name} ===")
+        print(f"J(s)      : {res['best_score']:.4f}")
+        print(f"RMSD_pi   : {rmsd:.4f}")
+        print(f"Feasible  : {cons['feasible']}")
+        print(f"Iterations : {res['iterations']}")
+        print(f"Best state: {res['best_state']}")
+        print(f"pi_T      : {traj['pi'][-1]:.2f}%")
+        if not cons["feasible"]:
+            v_str = {k: f"{v:.4f}" for k, v in cons["violations"].items()}
+            print(f"Violations: {v_str}")
+
+    print("\n" + "=" * 75)
+    print(f"{'Algoritma':<20} {'J(s)':>10} {'RMSD_pi':>10} {'Feasible':>10} {'pi_T':>8} {'Evals':>8}")
+    print("-" * 75)
+    for name, res, traj, cons, rmsd in results:
         print(
             f"{name:<20} {res['best_score']:>10.4f} {rmsd:>10.4f} "
             f"{'YES' if cons['feasible'] else 'NO':>10} "
             f"{traj['pi'][-1]:>7.2f}% {res['iterations']:>8}"
         )
-    print("-" * 70)
+    print("-" * 75)
     print("\nPlot saved: convergence.png")
 
 
