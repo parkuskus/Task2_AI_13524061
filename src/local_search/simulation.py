@@ -29,7 +29,7 @@ def simulate_economy(s, shocks=None, params=None):
     for t in range(T):
         r_prev = p["r0"] if t == 0 else s[t - 1]
 
-        de[t] = -(s[t] - p["r0_US"]) + p["rho_e"] + shocks["FX"][t]
+        de[t] = -(s[t] - p["r_US"][t]) + p["rho_e"] + shocks["FX"][t]
 
         y[t] = (
             p["rho_y"] * y_prev

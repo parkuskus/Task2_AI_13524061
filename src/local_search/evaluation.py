@@ -28,9 +28,6 @@ def check_constraints(s, trajectory, params=None):
     p = params
     T = len(s)
 
-    def r0_for_c2():
-        return p["r0"]
-
     c1_ok = all(p["r_min"] <= rt <= p["r_max"] and rt % 0.25 == 0 for rt in s)
 
     c2_ok = True
@@ -40,28 +37,20 @@ def check_constraints(s, trajectory, params=None):
             c2_ok = False
             break
 
-    c3_ok = all(rt - p["r0_US"] >= p["delta_min"] for rt in s)
-    violation_3 = max(0.0, max(p["delta_min"] - (rt - p["r0_US"]) for rt in s))
-
     CA = trajectory["CA"]
-    c4_ok = all(ca >= -p["theta"] for ca in CA)
-    violation_4 = max(0.0, max(-p["theta"] - ca for ca in CA))
+    c3_ok = all(ca >= -p["theta"] for ca in CA)
+    violation_3 = max(0.0, max(-p["theta"] - ca for ca in CA))
 
     sbn = trajectory["sbn"]
-    c5_ok = all(sbn[t] - s[t] <= p["sigma_max"] for t in range(T))
-    violation_5 = max(0.0, max((sbn[t] - s[t]) - p["sigma_max"] for t in range(T)))
+    c4_ok = all(sbn[t] - s[t] <= p["sigma_max"] for t in range(T))
+    violation_4 = max(0.0, max((sbn[t] - s[t]) - p["sigma_max"] for t in range(T)))
 
     pi_T = trajectory["pi"][-1]
-    c6_ok = abs(pi_T - p["pi_star"]) <= 1.0
-    violation_6 = max(0.0, abs(pi_T - p["pi_star"]) - 1.0)
+    c5_ok = abs(pi_T - p["pi_star"]) <= 1.0
+    violation_5 = max(0.0, abs(pi_T - p["pi_star"]) - 1.0)
 
-    feasible = c1_ok and c2_ok and c3_ok and c4_ok and c5_ok and c6_ok
-    violations = {
-        "C3": violation_3,
-        "C4": violation_4,
-        "C5": violation_5,
-        "C6": violation_6,
-    }
+    feasible = c1_ok and c2_ok and c3_ok and c4_ok and c5_ok
+    violations = {"C3": violation_3, "C4": violation_4, "C5": violation_5}
 
     return {
         "feasible": feasible,
@@ -70,7 +59,6 @@ def check_constraints(s, trajectory, params=None):
         "C3": c3_ok,
         "C4": c4_ok,
         "C5": c5_ok,
-        "C6": c6_ok,
         "violations": violations,
     }
 

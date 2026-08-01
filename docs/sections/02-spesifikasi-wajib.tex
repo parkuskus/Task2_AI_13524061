@@ -16,7 +16,7 @@ Ukuran ruang state dari formulasi ini adalah $21^{8} \approx 3,78 \times 10^{10}
 
 \section{Aturan dan Batasan Permasalahan}
 
-Permasalahan ini dibatasi oleh enam \textit{constraint} yang merepresentasikan kondisi neraca keuangan riil Indonesia, mencakup aspek domestik maupun eksternal. \textit{Constraint} C1 dan C2 bersifat struktural terhadap representasi state itu sendiri sehingga dapat diverifikasi langsung dari vektor $s$ tanpa perlu simulasi. \textit{Constraint} C3 sampai C6 melibatkan variabel makroekonomi hasil simulasi sehingga pelanggarannya baru dapat dideteksi setelah fungsi \texttt{compute\_objective(s)} dijalankan.
+Permasalahan ini dibatasi oleh lima \textit{constraint} yang merepresentasikan kondisi neraca keuangan riil Indonesia, mencakup aspek domestik maupun eksternal. \textit{Constraint} C1 dan C2 bersifat struktural terhadap representasi state itu sendiri sehingga dapat diverifikasi langsung dari vektor $s$ tanpa perlu simulasi. \textit{Constraint} C3 sampai C5 melibatkan variabel makroekonomi hasil simulasi sehingga pelanggarannya baru dapat dideteksi setelah fungsi \texttt{compute\_objective(s)} dijalankan.
 
 \textbf{C1. Batas dan Diskritisasi Suku Bunga.}
 
@@ -34,15 +34,7 @@ Permasalahan ini dibatasi oleh enam \textit{constraint} yang merepresentasikan k
 
 Bank sentral secara empiris menghindari perubahan suku bunga yang terlalu agresif karena dapat mengguncang ekspektasi pasar dan merusak kredibilitas \textit{forward guidance} \cite{woodford2003}. \textit{Constraint} ini membatasi perubahan antar kuartal maksimum sebesar 50 basis poin atau 0,50\%.
 
-\textbf{C3. Selisih Minimum terhadap Fed Funds Rate.}
-
-\[
-    r_t - r_t^{US} \geq \Delta_{min}, \qquad \Delta_{min} = 1{,}50\%
-\]
-
-Selisih suku bunga BI-Rate terhadap Fed Funds Rate tidak boleh turun di bawah $\Delta_{min} = 1{,}50\%$ untuk mencegah \textit{capital outflow} besar-besaran. Jika selisih terlalu kecil, imbal hasil aset rupiah menjadi kurang menarik bagi investor global, yang dapat memicu pelarian modal keluar dari pasar keuangan domestik. Nilai $r_t^{US} = 3{,}625\%$ sesuai midpoint Fed Funds Rate per Juli 2026.
-
-\textbf{C4. Batas Defisit Transaksi Berjalan.}
+\textbf{C3. Batas Defisit Transaksi Berjalan.}
 
 \[
     CA_t(s) \geq -\theta, \qquad \theta = 3{,}00\%
@@ -50,7 +42,7 @@ Selisih suku bunga BI-Rate terhadap Fed Funds Rate tidak boleh turun di bawah $\
 
 Defisit transaksi berjalan tidak boleh melebihi ambang 3,00\% PDB, merujuk pada batas aman IMF untuk negara \textit{emerging market}. \textit{Constraint} ini merepresentasikan kondisi terkini Indonesia yang baru mengalami defisit transaksi berjalan pertama setelah 72 bulan surplus berturut-turut, sehingga ruang gerak kebijakan yang memperlebar defisit lebih jauh perlu dibatasi.
 
-\textbf{C5. Batas \textit{Spread} Imbal Hasil Obligasi Pemerintah.}
+\textbf{C4. Batas \textit{Spread} Imbal Hasil Obligasi Pemerintah.}
 
 \[
     y_t^{SBN} - r_t \leq \sigma_{max}, \qquad \sigma_{max} = 2{,}50\%
@@ -58,7 +50,7 @@ Defisit transaksi berjalan tidak boleh melebihi ambang 3,00\% PDB, merujuk pada 
 
 Selisih antara imbal hasil SBN dan BI-Rate tidak boleh melebar melebihi $\sigma_{max} = 2{,}50$ poin persentase, untuk menghindari risiko \textit{fiscal dominance}, yaitu situasi di mana biaya pembiayaan utang pemerintah membengkak akibat sentimen pasar terhadap arah kebijakan moneter. Risiko ini secara eksplisit menjadi perhatian dalam diskusi perluasan kewenangan BI membeli SBN di pasar perdana pada UU P2SK.
 
-\textbf{C6. Konvergensi Target Inflasi di Akhir Horizon.}
+\textbf{C5. Konvergensi Target Inflasi di Akhir Horizon.}
 
 \[
     \left| \pi_T - \pi^{*} \right| \leq 1\%, \qquad \pi^{*} = 2{,}5\%
@@ -110,18 +102,17 @@ Bobot $w_\pi, w_y, w_{pp}, w_r$ menentukan prioritas relatif antar tujuan kebija
 \textit{Loss function} final yang digunakan dalam implementasi adalah $J_{penalized}(s)$, yaitu negatif dari $L(s)$ yang telah ditambah penalti \textit{constraint}. Negasi dilakukan karena algoritma \textit{local search} secara konvensional bekerja dengan memaksimalkan fungsi objektif, sedangkan $L(s)$ adalah fungsi yang ingin diminimalkan.
 
 \[
-    J_{penalized}(s) = -L(s) - \sum_{i=3}^{6} \mu_i \cdot \max\!\big(0,\; \text{violation}_i(s)\big)^2
+    J_{penalized}(s) = -L(s) - \sum_{i=3}^{5} \mu_i \cdot \max\!\big(0,\; \text{violation}_i(s)\big)^2
 \]
 
 Suku pertama, $-L(s)$, adalah negatif dari \textit{quadratic loss} yang mengubah permasalahan minimisasi $L(s)$ menjadi maksimisasi. Seluruh suku pada $L(s)$ bernilai non-negatif karena berbentuk kuadrat, sehingga $J(s) = -L(s) \leq 0$ untuk semua $s$. Nilai $J(s)$ yang semakin mendekati nol menandakan \textit{trajectory} ekonomi yang semakin dekat ke target. Nilai maksimum teoretis $J(s) = 0$ hanya tercapai jika semua deviasi sama dengan nol di seluruh periode, kondisi yang secara praktis mustahil karena kehadiran guncangan stokastik $\epsilon_t$.
 
-Suku kedua adalah penalti untuk \textit{constraint} C3 sampai C6 yang dilanggar. Pendekatan \textit{penalty method} dipilih karena \textit{constraint} C3 sampai C6 melibatkan variabel hasil simulasi sehingga tidak dapat diverifikasi sebelum simulasi dijalankan, berbeda dengan C1 dan C2 yang dapat dicek langsung dari vektor $s$. Setiap \textit{constraint} $i \in \{3, 4, 5, 6\}$ memiliki pelanggaran $\text{violation}_i(s)$ yang dihitung sebagai berikut.
+Suku kedua adalah penalti untuk \textit{constraint} C3 sampai C5 yang dilanggar. Pendekatan \textit{penalty method} dipilih karena \textit{constraint} C3 sampai C5 melibatkan variabel hasil simulasi sehingga tidak dapat diverifikasi sebelum simulasi dijalankan, berbeda dengan C1 dan C2 yang dapat dicek langsung dari vektor $s$. Setiap \textit{constraint} $i \in \{3, 4, 5\}$ memiliki pelanggaran $\text{violation}_i(s)$ yang dihitung sebagai berikut.
 
 \begin{align*}
-    \text{violation}_3(s) & = \max_{t}\!\big(0,\ \Delta_{min} - (r_t - r_t^{US})\big)  \\
-    \text{violation}_4(s) & = \max_{t}\!\big(0,\ -\theta - CA_t\big)                   \\
-    \text{violation}_5(s) & = \max_{t}\!\big(0,\ (y_t^{SBN} - r_t) - \sigma_{max}\big) \\
-    \text{violation}_6(s) & = \max\!\big(0,\ |\pi_T - \pi^{*}| - 1\%\big)
+    \text{violation}_3(s) & = \max_{t}\!\big(0,\ -\theta - CA_t\big)                   \\
+    \text{violation}_4(s) & = \max_{t}\!\big(0,\ (y_t^{SBN} - r_t) - \sigma_{max}\big) \\
+    \text{violation}_5(s) & = \max\!\big(0,\ |\pi_T - \pi^{*}| - 1\%\big)
 \end{align*}
 
 Pelanggaran dikuadratkan agar pelanggaran besar dikenakan penalti yang jauh lebih berat daripada pelanggaran kecil, mendorong algoritma untuk memprioritaskan perbaikan pada \textit{constraint} yang paling parah dilanggar. Bobot penalti $\mu_i$ ditetapkan sebesar 100 untuk seluruh $i$, cukup besar untuk mendominasi perbaikan pada $L(s)$ sehingga algoritma terdorong kuat menuju region \textit{feasible} sebelum melakukan \textit{fine-tuning} terhadap nilai $J(s)$. State yang memenuhi seluruh \textit{constraint} memiliki suku penalti nol sehingga $J_{penalized}(s) = -L(s)$.
@@ -129,16 +120,16 @@ Pelanggaran dikuadratkan agar pelanggaran besar dikenakan penalti yang jauh lebi
 
 \section{Formulasi \textit{Initial State}}
 
-Initial state $s_0$ dibentuk secara acak dengan titik awal $r_0$ mengacu pada kondisi aktual BI-Rate per Juli 2026. Nilai $r_0$ bersifat tetap dan bukan bagian dari state yang dapat dioptimasi. Proses pembangkitan bekerja secara sekuensial. Untuk setiap $t$ dari 1 sampai $T$, dipilih secara acak perubahan $\Delta$ dalam basis poin dari himpunan $\{-50, -25, 0, +25, +50\}$. Nilai $r_t$ diperoleh dari $r_{t-1} + \Delta$ yang kemudian dijepit ke rentang $[r_{min}, r_{max}]$ dan dibulatkan ke kelipatan 0,25\% terdekat. \textit{Constraint} C1 dan C2 secara implisit terpenuhi oleh mekanisme ini. Jika hasil pembangkitan acak tidak memenuhi C3 sampai C6, state tetap diterima sebagai initial state dalam status \textit{infeasible}, dan proses \textit{local search} bertugas mengarahkan pencarian menuju state yang \textit{feasible} sekaligus optimal melalui mekanisme penalti pada fungsi objektif.
+Initial state $s_0$ dibentuk secara acak dengan titik awal $r_0$ mengacu pada kondisi aktual BI-Rate per Juli 2026. Nilai $r_0$ bersifat tetap dan bukan bagian dari state yang dapat dioptimasi. Proses pembangkitan bekerja secara sekuensial. Untuk setiap $t$ dari 1 sampai $T$, dipilih secara acak perubahan $\Delta$ dalam basis poin dari himpunan $\{-50, -25, 0, +25, +50\}$. Nilai $r_t$ diperoleh dari $r_{t-1} + \Delta$ yang kemudian dijepit ke rentang $[r_{min}, r_{max}]$ dan dibulatkan ke kelipatan 0,25\% terdekat. \textit{Constraint} C1 dan C2 secara implisit terpenuhi oleh mekanisme ini. Jika hasil pembangkitan acak tidak memenuhi C3 sampai C5, state tetap diterima sebagai initial state dalam status \textit{infeasible}, dan proses \textit{local search} bertugas mengarahkan pencarian menuju state yang \textit{feasible} sekaligus optimal melalui mekanisme penalti pada fungsi objektif.
 
 \medskip
 \noindent\textbf{Kondisi awal sistem (periode $t = 0$).}
 \begin{align*}
-    r_0      & = 5{,}75\%                &  & \text{BI-Rate Juli 2026 (tetap, bukan bagian state)} \\
-    \pi_0    & = 3{,}34\%                &  & \text{Inflasi tahunan Juni 2026}                     \\
-    y_0      & = 0{,}00\%                &  & \text{\textit{Output gap} awal (asumsi netral)}      \\
-    e_0      & = 17{.}885\ \text{Rp/USD} &  & \text{Nilai tukar 21 Juli 2026}                      \\
-    r_0^{US} & = 3{,}625\%               &  & \text{Midpoint Fed Funds Rate (3,50\%--3,75\%)}
+    r_0      & = 5{,}75\%                                                                                        &  & \text{BI-Rate}                   \\
+    \pi_0    & = 3{,}34\%                                                                                        &  & \text{Inflasi tahunan Juni 2026} \\
+    y_0      & = 0{,}00\%                                                                                        &  & \text{\textit{Output gap} awal}  \\
+    e_0      & = 17{.}885\ \text{Rp/USD}                                                                         &  & \text{Nilai Dollar ke Rupiah}    \\
+    r_t^{US} & = (3{,}375\%,\ 3{,}125\%,\ 3{,}125\%,\ 3{,}125\%,\ 3{,}375\%,\ 3{,}625\%,\ 3{,}875\%,\ 4{,}125\%) &  & \text{Fed Rate}
 \end{align*}
 
 \medskip
@@ -260,8 +251,8 @@ Memvalidasi seluruh \textit{constraint} C1 sampai C6 terhadap sebuah state dan \
 \begin{itemize}
     \item \texttt{s} (list[float]) state suku bunga.
     \item \texttt{trajectory} (dict) hasil simulasi dari \texttt{simulate\_economy}.
-    \item \texttt{params} (dict) parameter \textit{constraint} ($r_{min}, r_{max}, r_0, \Delta_{min}, r_0^{US}, \theta, \sigma_{max}, \pi^{*}$).
-    \item \textit{Return} \texttt{dict} berisi \texttt{feasible} (bool) dan \texttt{violations} (dict) dengan kunci \texttt{C3, C4, C5, C6} yang bernilai besar pelanggaran masing-masing. C1 dan C2 dapat diverifikasi langsung dari \texttt{s} tanpa \texttt{trajectory}.
+    \item \texttt{params} (dict) parameter \textit{constraint} ($r_{min}, r_{max}, r_0, \theta, \sigma_{max}, \pi^{*}$).
+    \item \textit{Return} \texttt{dict} berisi \texttt{feasible} (bool) dan \texttt{violations} (dict) dengan kunci \texttt{C3, C4, C5} yang bernilai besar pelanggaran masing-masing. C1 dan C2 dapat diverifikasi langsung dari \texttt{s} tanpa \texttt{trajectory}.
 \end{itemize}
 
 \texttt{compute\_objective(s, shocks, params, mu=100)}
@@ -273,7 +264,7 @@ Fungsi utama yang menghitung nilai $J_{penalized}(s)$ untuk sebuah state. Fungsi
     \item \texttt{shocks} (dict) guncangan stokastik.
     \item \texttt{params} (dict) seluruh parameter model, \textit{constraint}, dan bobot ($w_\pi, w_y, w_{pp}, w_r, \delta$, serta parameter yang dibutuhkan \texttt{simulate\_economy} dan \texttt{check\_constraints}).
     \item \texttt{mu} (float) bobot penalti \textit{constraint}, default 100.
-    \item \textit{Return} \texttt{float} nilai $J_{penalized}(s) = -L(s) - \mu \sum_{i=3}^{6} \text{violation}_i(s)^2$.
+    \item \textit{Return} \texttt{float} nilai $J_{penalized}(s) = -L(s) - \mu \sum_{i=3}^{5} \text{violation}_i(s)^2$.
 \end{itemize}
 
 \texttt{compute\_rmsd(trajectory, pi\_star=2.5)}
@@ -472,7 +463,7 @@ rmsd = compute_rmsd(traj, pi_star=2.5)
 True
 
 >>> result["violations"]
-{'C3': 0.0, 'C4': 0.0, 'C5': 0.0, 'C6': 0.0}
+{'C3': 0.0, 'C4': 0.0, 'C5': 0.0}
 
 >>> score
 -8.935

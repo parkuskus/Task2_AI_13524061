@@ -1,56 +1,82 @@
-# main.py — demo Fase 1 + Fase 2
+# main.py — demo Fase 1, 2, dan 3
 
 import numpy as np
 from config import DEFAULT_PARAMS
 from shocks import generate_shocks
 from simulation import simulate_economy
-from evaluation import (
-    check_constraints,
-    compute_objective,
-    compute_rmsd,
-)
+from evaluation import check_constraints, compute_objective, compute_rmsd
+from utils import generate_initial_state
+from hill_climbing import hill_climbing
+from simulated_annealing import simulated_annealing
+from genetic_algorithm import genetic_algorithm
 
 
 def main():
     params = DEFAULT_PARAMS
     T = params["T"]
     shocks = generate_shocks(T=T, seed=42)
+    rng = np.random.default_rng(42)
 
-    s = [6.00, 6.25, 6.25, 6.00, 5.75, 5.50, 5.25, 5.25]
+    # ─── Hill-Climbing (single start) ───────────────────────────────
+    s0 = generate_initial_state(T=T, rng=rng)
+    print(f"HC   start: {s0}")
+    hc_single = hill_climbing(s0, max_iter=2000, shocks=shocks,
+                               params=params, patience=500)
 
-    print("=== Fase 1: Simulasi Ekonomi ===")
-    traj = simulate_economy(s, shocks, params)
-    header = f"{'t':>3} {'r':>7} {'y':>7} {'pi':>7} {'de':>7} {'e':>9} {'PP':>7} {'CA':>7} {'sbn':>7}"
-    print(header)
-    print("-" * len(header))
-    for t in range(T):
+    # ─── Hill-Climbing (multi-restart) ──────────────────────────────
+    best_hc = hill_climbing(s0, max_iter=2000, shocks=shocks,
+                             params=params, patience=500)
+    for restart in range(10):
+        s_r = generate_initial_state(T=T, rng=np.random.default_rng(100 + restart))
+        hc_r = hill_climbing(s_r, max_iter=2000, shocks=shocks,
+                              params=params, patience=500)
+        if hc_r["best_score"] > best_hc["best_score"]:
+            best_hc = hc_r
+    hc = best_hc
+
+    # ─── Simulated Annealing ────────────────────────────────────────
+    print(f"SA   start: {s0}")
+    sa = simulated_annealing(s0, max_iter=5000, T0=50.0,
+                              cooling_rate=0.998, shocks=shocks,
+                              params=params)
+
+    # ─── Genetic Algorithm ──────────────────────────────────────────
+    ga = genetic_algorithm(pop_size=100, generations=300,
+                            mutation_rate=0.25, shocks=shocks,
+                            params=params)
+
+    # ─── Evaluasi ───────────────────────────────────────────────────
+    results = []
+    for name, res in [
+        ("HC-single", hc_single),
+        ("HC-10restart", hc),
+        ("SA", sa),
+        ("GA", ga),
+    ]:
+        traj = simulate_economy(res["best_state"], shocks, params)
+        cons = check_constraints(res["best_state"], traj, params)
+        rmsd = compute_rmsd(traj)
+        results.append((name, res, traj, cons, rmsd))
+        print(f"\n=== {name} ===")
+        print(f"J(s)      : {res['best_score']:.4f}")
+        print(f"RMSD_pi   : {rmsd:.4f}")
+        print(f"Feasible  : {cons['feasible']}")
+        print(f"Iterations : {res['iterations']}")
+        print(f"Best state: {res['best_state']}")
+        print(f"pi_T      : {traj['pi'][-1]:.2f}%")
+        if not cons["feasible"]:
+            print(f"Violations: {cons['violations']}")
+
+    # ─── Perbandingan ───────────────────────────────────────────────
+    print("\n" + "=" * 75)
+    print(f"{'':<20} {'J(s)':>10} {'RMSD_pi':>10} {'Feasible':>10} {'pi_T':>8}")
+    print("-" * 75)
+    for name, res, traj, cons, rmsd in results:
         print(
-            f"{t+1:>3} {s[t]:>6.2f}% "
-            f"{traj['y'][t]:>+6.2f} "
-            f"{traj['pi'][t]:>6.2f}% "
-            f"{traj['de'][t]:>+6.2f}% "
-            f"{traj['e'][t]:>8.0f} "
-            f"{traj['PP'][t]:>+6.2f} "
-            f"{traj['CA'][t]:>+6.2f}% "
-            f"{traj['sbn'][t]:>6.2f}%"
+            f"{name:<20} {res['best_score']:>10.4f} {rmsd:>10.4f} "
+            f"{'YES' if cons['feasible'] else 'NO':>10} {traj['pi'][-1]:>7.2f}%"
         )
-
-    print(f"\n=== Fase 2: Evaluasi State ===")
-    cons = check_constraints(s, traj, params)
-    print(f"Feasible : {cons['feasible']}")
-    print(f"C1 (diskritisasi)  : {'OK' if cons['C1'] else 'FAIL'}")
-    print(f"C2 (smoothing)     : {'OK' if cons['C2'] else 'FAIL'}")
-    print(f"C3 (diff vs Fed)   : {'OK' if cons['C3'] else 'FAIL'}")
-    print(f"C4 (CA/PDB)        : {'OK' if cons['C4'] else 'FAIL'}")
-    print(f"C5 (spread SBN)    : {'OK' if cons['C5'] else 'FAIL'}")
-    print(f"C6 (inflasi akhir) : {'OK' if cons['C6'] else 'FAIL'}")
-    print(f"Violations: {cons['violations']}")
-
-    score, traj2, cons2 = compute_objective(s, shocks, params)
-    rmsd = compute_rmsd(traj2, params["pi_star"])
-    print(f"J_penalized(s) : {score:.4f}")
-    print(f"RMSD_pi        : {rmsd:.4f}")
-    print(f"Interpretasi   : {'SANGAT BAIK' if rmsd < 0.5 else 'BAIK' if rmsd < 1.0 else 'BURUK'}")
+    print("-" * 75)
 
 
 if __name__ == "__main__":
