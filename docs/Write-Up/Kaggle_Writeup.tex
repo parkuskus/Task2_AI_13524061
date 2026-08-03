@@ -1,5 +1,6 @@
 \documentclass{article}
 \usepackage{nips15submit_e,times}
+\usepackage[margin=0.7in]{geometry}
 \usepackage{hyperref}
 \usepackage{url}
 \usepackage{graphicx}
@@ -38,22 +39,12 @@
     language=Python
 }
 
-\title{\textbf{Psi -1 - TaskName Technical Writeup}}
+\title{\textbf{Loan Acceptance Prediction Technical Write-Up}}
 \author{
 Muhammad Aufar Rizqi Kusuma \\
 Sekolah Teknik Elektro dan Informatika\\
 Institut Teknologi Bandung\\
 \texttt{13524061@std.stei.itb.ac.id} \\
-\And
-Kurt Mikhael Purba \\
-Sekolah Teknik Elektro dan Informatika\\
-Institut Teknologi Bandung\\
-\texttt{13524065@std.stei.itb.ac.id} \\
-\And
-Mochamad Fachri Alfaridzi \\
-Sekolah Teknik Elektro dan Informatika\\
-Institut Teknologi Bandung\\
-\texttt{13525128@std.stei.itb.ac.id} \\
 }
 
 \newcommand{\fix}{\marginpar{FIX}}
@@ -65,182 +56,114 @@ Institut Teknologi Bandung\\
 
 \maketitle
 
+% ==================== TL;DR ====================
+\section{TL;DR}
+
+ [Ringkasan singkat pendekatan \& hasil --- maks. 1 paragraf.]
+
 % ==================== PROBLEM OVERVIEW ====================
 \section{Problem Overview}
 
- [Placeholder: Describe the task objective, evaluation metric, and what the model needs to predict/classify.]
+ [Deskripsi permasalahan \& dataset secara singkat.]
 
-The competition task requires us to [brief description of the problem]. The primary evaluation metric is [metric name], which measures [explanation of metric]. Our goal is to [what success looks like].
+\subsection{Permasalahan}
 
-Key challenges identified:
-\begin{itemize}
-    \item Challenge 1: e.g., class imbalance, missing values, high dimensionality]
-    \item Challenge 2: e.g., noisy labels, small dataset, computational constraints]
-    \item Challenge 3: e.g., feature engineering complexity, time series dependencies]
-\end{itemize}
+Tugas: memprediksi \texttt{loan\_status} (0 = ditolak, 1 = disetujui) untuk setiap pemohon berdasarkan data demografis, finansial, dan riwayat kredit. Metrik evaluasi: \textbf{Macro F1-score}.
 
-% ==================== DATASET ====================
-\section{Dataset}
-
- [Placeholder: Describe dataset structure, size, features, and any preprocessing applied.]
-
-The dataset consists of [number] samples with [number] features. Key characteristics:
+\subsection{Dataset}
 
 \begin{itemize}
-    \item \textbf{Train set}: [number] rows, [number] columns
-    \item \textbf{Test set}: [number] rows, [number] columns
-    \item \textbf{Target variable}: [description of target, type, distribution]
-    \item \textbf{Feature types}: [numerical, categorical, text, images, etc.]
+    \item \textbf{Train set}: 36.000 baris (28.000 label 0, 8.000 label 1) --- tidak seimbang
+    \item \textbf{Test set}: 9.000 baris tanpa label
+    \item \textbf{Fitur}: 12 kolom (numerik + kategorik), tanpa missing values
+    \item \textbf{Target}: \texttt{loan\_status} (hanya di train.csv)
 \end{itemize}
 
-Notable observations:
+ [Tambahkan observasi penting EDA di sini jika relevan.]
+
+% ==================== DTL ====================
+\section{Decision Tree Learning (DTL)}
+
+ [Implementasi DTL \& pertimbangan pemilihan varian (ID3, C4.5, atau CART).]
+
+\subsection{Pemilihan Varian}
+
+ [Jelaskan varian yang dipilih dan alasan.]
+
+\subsection{Implementasi}
+
+ [Deskripsikan implementasi from-scratch: kriteria splitting, penanganan fitur numerik/kategorik, stopping criteria, dsb.]
+
+\subsection{Perbandingan dengan scikit-learn}
+
+ [Hasil model from-scratch vs sklearn.]
+
+% ==================== LOGISTIC REGRESSION ====================
+\section{Logistic Regression (LR)}
+
+ [Implementasi Logistic Regression.]
+
+\subsection{Implementasi}
+
+ [Deskripsikan implementasi from-scratch: gradient descent, learning rate, regularisasi, dsb.]
+
+\subsection{Perbandingan dengan scikit-learn}
+
+ [Hasil model from-scratch vs sklearn.]
+
+% ==================== SVM ====================
+\section{Support Vector Machine (SVM)}
+
+ [Implementasi SVM.]
+
+\subsection{Implementasi}
+
+ [Deskripsikan implementasi from-scratch: kernel, optimasi, parameter, dsb.]
+
+\subsection{Perbandingan dengan scikit-learn}
+
+ [Hasil model from-scratch vs sklearn.]
+
+% ==================== VALIDATION STRATEGY ====================
+\section{Validation Strategy}
+
+ [Metode validasi yang digunakan + perbandingan skor validasi lokal vs leaderboard Kaggle.]
+
 \begin{itemize}
-    \item Observation 1: e.g., 15\% missing values in feature X]
-    \item Observation 2: e.g., target distribution is skewed 80/20]
-    \item Observation 3: e.g., high correlation between features A and B]
+    \item \textbf{CV Scheme}: [e.g., Stratified 5-Fold]
+    \item \textbf{Local CV Score}: [skor validasi lokal masing-masing model]
+    \item \textbf{Kaggle LB Score}: [skor public leaderboard]
+    \item \textbf{Analisis}: [bandingkan skor lokal vs LB, apakah konsisten?]
 \end{itemize}
 
-% ==================== EXPERIMENT ENVIRONMENT ====================
-\section{Experiment Environment}
+% ==================== PERCOBAAN YANG GAGAL ====================
+\section{Percobaan yang Gagal}
 
- [Placeholder: List hardware, software, libraries, and versions used.]
+ [Pendekatan yang dicoba tetapi gagal meningkatkan performa.]
 
-\begin{tabular}{ll}
-    \toprule
-    \textbf{Component} & \textbf{Specification}                          \\
-    \midrule
-    Platform           & Kaggle Notebook (GPU/TPU)                       \\
-    Python Version     & 3.x                                             \\
-    Key Libraries      & [e.g., scikit-learn 1.x, pandas 2.x, numpy 1.x] \\
-    Deep Learning      & [e.g., PyTorch 2.x / TensorFlow 2.x / None]     \\
-    Hardware           & [e.g., NVIDIA Tesla P100 / T4 / CPU only]       \\
-    Execution Time     & [e.g., ~2 hours total]                          \\
-    \bottomrule
-\end{tabular}
+\begin{itemize}
+    \item \textbf{Percobaan 1}: [deskripsi pendekatan, mengapa gagal]
+    \item \textbf{Percobaan 2}: [deskripsi pendekatan, mengapa gagal]
+\end{itemize}
 
-% ==================== EDA ====================
-\section{Exploratory Data Analysis (EDA)}
+% ==================== PENGEMBANGAN LEBIH LANJUT ====================
+\section{Pengembangan Lebih Lanjut}
 
- [Placeholder: Summarize key findings from data exploration.]
+ [Potensi perbaikan yang dapat dilakukan dengan lebih banyak waktu/sumber daya.]
 
-Our EDA revealed several important patterns:
+\begin{itemize}
+    \item Perbaikan 1: [deskripsi]
+    \item Perbaikan 2: [deskripsi]
+\end{itemize}
+
+% ==================== REFERENSI ====================
+\section{Referensi}
 
 \begin{enumerate}
-    \item \textbf{Target Distribution}: [describe distribution, any imbalance]
-    \item \textbf{Feature Correlations}: [mention important correlations or lack thereof]
-    \item \textbf{Missing Data Pattern}: [describe missingness, whether MCAR/MAR/MNAR]
-    \item \textbf{Outliers}: [describe outlier detection and handling]
-    \item \textbf{Interesting Patterns}: [any surprising findings that informed modeling]
+    \item GeeksforGeeks, \textit{``Iterative Dichotomiser 3 (ID3) Algorithm From Scratch,''}. \url{https://www.geeksforgeeks.org/iterative-dichotomiser-3-id3-algorithm-from-scratch/}
+    \item GeeksforGeeks, \textit{``CART (Classification And Regression Tree) in Machine Learning,''}. \url{https://www.geeksforgeeks.org/cart-classification-and-regression-tree-in-machine-learning/}
+    \item GeeksforGeeks, \textit{``Understanding Logistic Regression,''}. \url{https://www.geeksforgeeks.org/understanding-logistic-regression/}
+    \item GeeksforGeeks, \textit{``Support Vector Machine (SVM) Algorithm,''}. \url{https://www.geeksforgeeks.org/support-vector-machine-algorithm/}
 \end{enumerate}
-
-% Example figure placeholder:
-% \begin{figure}[h]
-%     \centering
-%     \includegraphics[width=0.8\linewidth]{public/eda/target_distribution.png}
-%     \caption{Target variable distribution}
-%     \label{fig:target_dist}
-% \end{figure}
-
-% ==================== PIPELINE EXPLANATION ====================
-\section{Pipeline Explanation}
-
- [Placeholder: Describe the full ML pipeline from preprocessing to prediction.]
-
-\subsection{Preprocessing}
-
-[Describe data cleaning, feature engineering, encoding, scaling, etc.]
-
-\begin{lstlisting}[caption=Preprocessing snippet]
-# Placeholder: Add your preprocessing code here
-import pandas as pd
-from sklearn.model_selection import train_test_split
-
-df = pd.read_csv('train.csv')
-# Your preprocessing steps
-\end{lstlisting}
-
-\subsection{Feature Engineering}
-
-[Describe any created features, transformations, or selections.]
-
-Key features created:
-\begin{itemize}
-    \item Feature 1: description and rationale
-    \item Feature 2: description and rationale
-    \item Feature 3: description and rationale
-\end{itemize}
-
-\subsection{Model Architecture}
-
-[Describe the model(s) used, hyperparameters, and training strategy.]
-
-\begin{itemize}
-    \item \textbf{Model}: [e.g., LightGBM, XGBoost, Random Forest, Neural Network]
-    \item \textbf{Hyperparameters}: [key parameters tuned]
-    \item \textbf{Training Strategy}: [e.g., 5-fold CV, early stopping, learning rate schedule]
-    \item \textbf{Ensemble}: [if applicable, describe blending/stacking approach]
-\end{itemize}
-
-\begin{lstlisting}[caption=Model training snippet]
-# Placeholder: Add your model training code here
-from sklearn.ensemble import GradientBoostingClassifier
-
-model = GradientBoostingClassifier(
-    n_estimators=100,
-    max_depth=5,
-    learning_rate=0.1
-)
-model.fit(X_train, y_train)
-\end{lstlisting}
-
-\subsection{Validation Strategy}
-
-[Describe cross-validation scheme and local validation score.]
-
-\begin{itemize}
-    \item \textbf{CV Scheme}: [e.g., Stratified 5-Fold, TimeSeriesSplit]
-    \item \textbf{Local CV Score}: [your cross-validation metric]
-    \item \textbf{Public LB Score}: [your public leaderboard score]
-    \item \textbf{Private LB Score}: [your private leaderboard score]
-\end{itemize}
-
-% ==================== POST-MORTEM ANALYSIS ====================
-\section{Post-Mortem Analysis}
-
- [Placeholder: Reflect on what worked, what didn't, and lessons learned.]
-
-\subsection{What Worked}
-
-\begin{itemize}
-    \item Successful approach 1 and why it worked
-    \item Successful approach 2 and why it worked
-    \item Successful approach 3 and why it worked
-\end{itemize}
-
-\subsection{What Didn't Work}
-
-\begin{itemize}
-    \item Failed approach 1 and why it failed
-    \item Failed approach 2 and why it failed
-    \item Failed approach 3 and why it failed
-\end{itemize}
-
-\subsection{Lessons Learned}
-
-\begin{itemize}
-    \item Key takeaway 1
-    \item Key takeaway 2
-    \item Key takeaway 3
-\end{itemize}
-
-\subsection{Future Improvements}
-
-[Placeholder: What would you do differently with more time/resources?]
-
-\begin{itemize}
-    \item Improvement 1: e.g., try different model architecture
-    \item Improvement 2: e.g., more extensive feature engineering
-    \item Improvement 3: e.g., ensemble more diverse models
-\end{itemize}
 
 \end{document}
