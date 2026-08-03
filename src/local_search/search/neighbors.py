@@ -19,41 +19,15 @@ def generate_neighbor(s, move_type=None, rng=None):
     if move_type == 1:
         t = rng.integers(0, T)
         delta = rng.choice([-0.25, 0.25])
-        r_prev = DEFAULT_PARAMS["r0"] if t == 0 else s[t - 1]
-        r_next = s[t + 1] if t + 1 < T else None
-
         new_val = round_to_bps(s[t] + delta)
         new_val = max(r_min, min(r_max, new_val))
-
-        if abs(new_val - r_prev) > 0.50:
-            new_val = r_prev + 0.50 if new_val > r_prev else r_prev - 0.50
-            new_val = round_to_bps(new_val)
-            new_val = max(r_min, min(r_max, new_val))
-
-        if r_next is not None and abs(r_next - new_val) > 0.50:
-            if new_val > r_next:
-                new_val = r_next + 0.50
-            else:
-                new_val = r_next - 0.50
-            new_val = round_to_bps(new_val)
-            new_val = max(r_min, min(r_max, new_val))
-
         s_new[t] = new_val
 
     elif move_type == 2:
         t = rng.integers(0, T)
         delta = rng.choice([-0.25, 0.25])
-
-        r_prev = DEFAULT_PARAMS["r0"] if t == 0 else s[t - 1]
-        new_val = round_to_bps(s[t] + delta)
-        new_val = max(r_min, min(r_max, new_val))
-
-        if abs(new_val - r_prev) > 0.50:
-            delta = 0.0
-
-        if delta != 0.0:
-            for i in range(t, T):
-                s_new[i] = round_to_bps(max(r_min, min(r_max, s_new[i] + delta)))
+        for i in range(t, T):
+            s_new[i] = round_to_bps(max(r_min, min(r_max, s_new[i] + delta)))
 
     return clip_state(s_new, r_min, r_max)
 

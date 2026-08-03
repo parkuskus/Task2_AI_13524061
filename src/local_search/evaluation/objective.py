@@ -24,5 +24,5 @@ def compute_objective(s, shocks=None, params=None, mu=100):
             + p["w_r"] * ((s[t] - r_prev) ** 2)
         )
 
-    penalty = sum(mu * (cons["violations"][k] ** 2) for k in cons["violations"])
+    penalty = mu * sum(v ** 2 for v in cons["violations"].values())
     return -L - penalty, traj, cons

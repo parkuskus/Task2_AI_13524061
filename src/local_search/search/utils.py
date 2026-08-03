@@ -22,15 +22,10 @@ def generate_initial_state(T=8, r_min=None, r_max=None, rng=None):
     if rng is None:
         rng = np.random.default_rng()
 
-    r0 = DEFAULT_PARAMS["r0"]
-    deltas = [-0.50, -0.25, 0.00, 0.25, 0.50]
-
+    # ponytail: no C2, soft constraint via w_r in objective
     s = []
-    prev = r0
     for _ in range(T):
-        r = prev + rng.choice(deltas)
-        r = round_to_bps(max(r_min, min(r_max, r)))
+        r = round_to_bps(rng.uniform(r_min, r_max))
         s.append(r)
-        prev = r
 
     return s
