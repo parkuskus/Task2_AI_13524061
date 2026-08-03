@@ -1,0 +1,246 @@
+\documentclass{article}
+\usepackage{nips15submit_e,times}
+\usepackage{hyperref}
+\usepackage{url}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{booktabs}
+\usepackage{subcaption}
+\usepackage{listings}
+\usepackage{enumitem}
+
+% List formatting
+\setlist[itemize]{leftmargin=*, label=\textbullet, itemsep=0.2em, topsep=0.3em}
+\setlist[enumerate]{leftmargin=*, itemsep=0.2em, topsep=0.3em}
+
+% Code listing setup
+\definecolor{codebg}{rgb}{0.95,0.95,0.95}
+\definecolor{codekw}{rgb}{0.0,0.0,0.5}
+\definecolor{codestr}{rgb}{0.5,0.0,0.0}
+\definecolor{codecom}{rgb}{0.0,0.5,0.0}
+
+\lstset{
+    backgroundcolor=\color{codebg},
+    basicstyle=\ttfamily\small,
+    keywordstyle=\color{codekw}\bfseries,
+    stringstyle=\color{codestr},
+    commentstyle=\color{codecom}\itshape,
+    frame=single,
+    framerule=0.5pt,
+    rulecolor=\color{gray},
+    breaklines=true,
+    breakatwhitespace=true,
+    showstringspaces=false,
+    numbers=left,
+    numberstyle=\tiny\color{gray},
+    captionpos=b,
+    tabsize=4,
+    language=Python
+}
+
+\title{\textbf{Psi -1 - TaskName Technical Writeup}}
+\author{
+Muhammad Aufar Rizqi Kusuma \\
+Sekolah Teknik Elektro dan Informatika\\
+Institut Teknologi Bandung\\
+\texttt{13524061@std.stei.itb.ac.id} \\
+\And
+Kurt Mikhael Purba \\
+Sekolah Teknik Elektro dan Informatika\\
+Institut Teknologi Bandung\\
+\texttt{13524065@std.stei.itb.ac.id} \\
+\And
+Mochamad Fachri Alfaridzi \\
+Sekolah Teknik Elektro dan Informatika\\
+Institut Teknologi Bandung\\
+\texttt{13525128@std.stei.itb.ac.id} \\
+}
+
+\newcommand{\fix}{\marginpar{FIX}}
+\newcommand{\new}{\marginpar{NEW}}
+
+\nipsfinalcopy
+
+\begin{document}
+
+\maketitle
+
+% ==================== PROBLEM OVERVIEW ====================
+\section{Problem Overview}
+
+ [Placeholder: Describe the task objective, evaluation metric, and what the model needs to predict/classify.]
+
+The competition task requires us to [brief description of the problem]. The primary evaluation metric is [metric name], which measures [explanation of metric]. Our goal is to [what success looks like].
+
+Key challenges identified:
+\begin{itemize}
+    \item Challenge 1: e.g., class imbalance, missing values, high dimensionality]
+    \item Challenge 2: e.g., noisy labels, small dataset, computational constraints]
+    \item Challenge 3: e.g., feature engineering complexity, time series dependencies]
+\end{itemize}
+
+% ==================== DATASET ====================
+\section{Dataset}
+
+ [Placeholder: Describe dataset structure, size, features, and any preprocessing applied.]
+
+The dataset consists of [number] samples with [number] features. Key characteristics:
+
+\begin{itemize}
+    \item \textbf{Train set}: [number] rows, [number] columns
+    \item \textbf{Test set}: [number] rows, [number] columns
+    \item \textbf{Target variable}: [description of target, type, distribution]
+    \item \textbf{Feature types}: [numerical, categorical, text, images, etc.]
+\end{itemize}
+
+Notable observations:
+\begin{itemize}
+    \item Observation 1: e.g., 15\% missing values in feature X]
+    \item Observation 2: e.g., target distribution is skewed 80/20]
+    \item Observation 3: e.g., high correlation between features A and B]
+\end{itemize}
+
+% ==================== EXPERIMENT ENVIRONMENT ====================
+\section{Experiment Environment}
+
+ [Placeholder: List hardware, software, libraries, and versions used.]
+
+\begin{tabular}{ll}
+    \toprule
+    \textbf{Component} & \textbf{Specification}                          \\
+    \midrule
+    Platform           & Kaggle Notebook (GPU/TPU)                       \\
+    Python Version     & 3.x                                             \\
+    Key Libraries      & [e.g., scikit-learn 1.x, pandas 2.x, numpy 1.x] \\
+    Deep Learning      & [e.g., PyTorch 2.x / TensorFlow 2.x / None]     \\
+    Hardware           & [e.g., NVIDIA Tesla P100 / T4 / CPU only]       \\
+    Execution Time     & [e.g., ~2 hours total]                          \\
+    \bottomrule
+\end{tabular}
+
+% ==================== EDA ====================
+\section{Exploratory Data Analysis (EDA)}
+
+ [Placeholder: Summarize key findings from data exploration.]
+
+Our EDA revealed several important patterns:
+
+\begin{enumerate}
+    \item \textbf{Target Distribution}: [describe distribution, any imbalance]
+    \item \textbf{Feature Correlations}: [mention important correlations or lack thereof]
+    \item \textbf{Missing Data Pattern}: [describe missingness, whether MCAR/MAR/MNAR]
+    \item \textbf{Outliers}: [describe outlier detection and handling]
+    \item \textbf{Interesting Patterns}: [any surprising findings that informed modeling]
+\end{enumerate}
+
+% Example figure placeholder:
+% \begin{figure}[h]
+%     \centering
+%     \includegraphics[width=0.8\linewidth]{public/eda/target_distribution.png}
+%     \caption{Target variable distribution}
+%     \label{fig:target_dist}
+% \end{figure}
+
+% ==================== PIPELINE EXPLANATION ====================
+\section{Pipeline Explanation}
+
+ [Placeholder: Describe the full ML pipeline from preprocessing to prediction.]
+
+\subsection{Preprocessing}
+
+[Describe data cleaning, feature engineering, encoding, scaling, etc.]
+
+\begin{lstlisting}[caption=Preprocessing snippet]
+# Placeholder: Add your preprocessing code here
+import pandas as pd
+from sklearn.model_selection import train_test_split
+
+df = pd.read_csv('train.csv')
+# Your preprocessing steps
+\end{lstlisting}
+
+\subsection{Feature Engineering}
+
+[Describe any created features, transformations, or selections.]
+
+Key features created:
+\begin{itemize}
+    \item Feature 1: description and rationale
+    \item Feature 2: description and rationale
+    \item Feature 3: description and rationale
+\end{itemize}
+
+\subsection{Model Architecture}
+
+[Describe the model(s) used, hyperparameters, and training strategy.]
+
+\begin{itemize}
+    \item \textbf{Model}: [e.g., LightGBM, XGBoost, Random Forest, Neural Network]
+    \item \textbf{Hyperparameters}: [key parameters tuned]
+    \item \textbf{Training Strategy}: [e.g., 5-fold CV, early stopping, learning rate schedule]
+    \item \textbf{Ensemble}: [if applicable, describe blending/stacking approach]
+\end{itemize}
+
+\begin{lstlisting}[caption=Model training snippet]
+# Placeholder: Add your model training code here
+from sklearn.ensemble import GradientBoostingClassifier
+
+model = GradientBoostingClassifier(
+    n_estimators=100,
+    max_depth=5,
+    learning_rate=0.1
+)
+model.fit(X_train, y_train)
+\end{lstlisting}
+
+\subsection{Validation Strategy}
+
+[Describe cross-validation scheme and local validation score.]
+
+\begin{itemize}
+    \item \textbf{CV Scheme}: [e.g., Stratified 5-Fold, TimeSeriesSplit]
+    \item \textbf{Local CV Score}: [your cross-validation metric]
+    \item \textbf{Public LB Score}: [your public leaderboard score]
+    \item \textbf{Private LB Score}: [your private leaderboard score]
+\end{itemize}
+
+% ==================== POST-MORTEM ANALYSIS ====================
+\section{Post-Mortem Analysis}
+
+ [Placeholder: Reflect on what worked, what didn't, and lessons learned.]
+
+\subsection{What Worked}
+
+\begin{itemize}
+    \item Successful approach 1 and why it worked
+    \item Successful approach 2 and why it worked
+    \item Successful approach 3 and why it worked
+\end{itemize}
+
+\subsection{What Didn't Work}
+
+\begin{itemize}
+    \item Failed approach 1 and why it failed
+    \item Failed approach 2 and why it failed
+    \item Failed approach 3 and why it failed
+\end{itemize}
+
+\subsection{Lessons Learned}
+
+\begin{itemize}
+    \item Key takeaway 1
+    \item Key takeaway 2
+    \item Key takeaway 3
+\end{itemize}
+
+\subsection{Future Improvements}
+
+[Placeholder: What would you do differently with more time/resources?]
+
+\begin{itemize}
+    \item Improvement 1: e.g., try different model architecture
+    \item Improvement 2: e.g., more extensive feature engineering
+    \item Improvement 3: e.g., ensemble more diverse models
+\end{itemize}
+
+\end{document}
