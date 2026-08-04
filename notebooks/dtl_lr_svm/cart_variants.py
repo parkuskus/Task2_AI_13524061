@@ -79,27 +79,31 @@ def main():
         ("Baseline (depth=10, leaf=5)", CARTDecisionTree(
             max_depth=10, min_samples_leaf=5, random_seed=42)),
 
-        ("Baseline + minority rules", CARTDecisionTree(
-            max_depth=10, min_samples_leaf=5, minority_rules=True, random_seed=42)),
+        ("Filter defaults + depth=10", CARTDecisionTree(
+            max_depth=10, min_samples_leaf=5, filter_defaults=True, random_seed=42)),
 
-        ("Rules + deeper (depth=12)", CARTDecisionTree(
-            max_depth=12, min_samples_leaf=5, minority_rules=True, random_seed=42)),
+        ("Filter defaults + depth=12", CARTDecisionTree(
+            max_depth=12, min_samples_leaf=5, filter_defaults=True, random_seed=42)),
 
-        ("Rules + leaf=3", CARTDecisionTree(
-            max_depth=10, min_samples_leaf=3, minority_rules=True, random_seed=42)),
+        ("Filter defaults + leaf=3", CARTDecisionTree(
+            max_depth=10, min_samples_leaf=3, filter_defaults=True, random_seed=42)),
 
-        ("Rules + CW (1:3)", CARTDecisionTree(
-            max_depth=10, min_samples_leaf=5, class_weights=cw,
-            minority_rules=True, random_seed=42)),
+        ("Filter defaults + leaf=2", CARTDecisionTree(
+            max_depth=10, min_samples_leaf=2, filter_defaults=True, random_seed=42)),
 
-        ("Rules + CW + F1 prune", CARTDecisionTree(
-            max_depth=10, min_samples_leaf=5, ccp_alpha=0.00005,
-            f1_pruning=True, class_weights=cw,
-            minority_rules=True, random_seed=42)),
+        ("Filter defaults + depth=12 + leaf=3", CARTDecisionTree(
+            max_depth=12, min_samples_leaf=3, filter_defaults=True, random_seed=42)),
 
-        ("Rules + min_leaf_c1=2", CARTDecisionTree(
+        ("Filter defaults + depth=15 + leaf=2", CARTDecisionTree(
+            max_depth=15, min_samples_leaf=2, filter_defaults=True, random_seed=42)),
+
+        ("Filter defaults + F1 prune", CARTDecisionTree(
+            max_depth=10, min_samples_leaf=3, ccp_alpha=0.00005,
+            f1_pruning=True, filter_defaults=True, random_seed=42)),
+
+        ("Filter defaults + min_leaf_c1=2", CARTDecisionTree(
             max_depth=10, min_samples_leaf=5, min_leaf_class_1=2,
-            minority_rules=True, random_seed=42)),
+            filter_defaults=True, random_seed=42)),
     ]
 
     best_val_f1 = -1
@@ -127,6 +131,7 @@ def main():
         class_weights=best_model.class_weights,
         f1_pruning=best_model.f1_pruning,
         min_leaf_class_1=best_model.min_leaf_class_1,
+        filter_defaults=best_model.filter_defaults,
         random_seed=42,
     )
     final_model.fit(X_train, y_train)

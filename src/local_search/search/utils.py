@@ -22,7 +22,7 @@ def generate_initial_state(T=8, r_min=None, r_max=None, rng=None):
     if rng is None:
         rng = np.random.default_rng()
 
-    # ponytail: no C2, soft constraint via w_r in objective
+    # no C2, soft constraint via w_r in objective
     s = []
     for _ in range(T):
         r = round_to_bps(rng.uniform(r_min, r_max))

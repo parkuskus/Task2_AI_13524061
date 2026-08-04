@@ -302,7 +302,8 @@ class CARTDecisionTree:
     def __init__(self, max_depth=None, min_samples_split=2, min_samples_leaf=1,
                  min_impurity_decrease=0.0, ccp_alpha=0.0, max_features=None,
                  class_weights=None, random_seed=42, criterion="gini",
-                 min_leaf_class_1=0, f1_pruning=False, minority_rules=False):
+                 min_leaf_class_1=0, f1_pruning=False, minority_rules=False,
+                 filter_defaults=False):
         self.max_depth = max_depth
         self.min_samples_split = min_samples_split
         self.min_samples_leaf = min_samples_leaf
@@ -315,10 +316,10 @@ class CARTDecisionTree:
         self.min_leaf_class_1 = min_leaf_class_1
         self.f1_pruning = f1_pruning
         self.minority_rules = minority_rules
+        self.filter_defaults = filter_defaults
         self.tree = None
         self.rng = np.random.RandomState(random_seed)
         self.threshold = 0.5
-        # ponytail: hardcoded feature indices for rule engine (matches dataset_loader order)
         self._rule_defs = None
 
     def _compute_sample_weights(self, y):
@@ -334,7 +335,7 @@ class CARTDecisionTree:
         return counts.astype(np.float64)
 
     def _setup_rules(self):
-        # ponytail: binary rule features as extra columns — tree decides via Gini
+        # binary rule features as extra columns — tree decides via Gini
         # Each rule: (feat_a, op_a, feat_b, op_b)
         self._rule_defs = [
             (10, lambda v: v < 0.0, 5, lambda v: v > -0.5),
@@ -349,16 +350,15 @@ class CARTDecisionTree:
             cols.append(col.reshape(-1, 1))
         return np.column_stack(cols)
 
-    def fit(self, X, y):
+    def fit(self, X, y, sample_weights=None):
+        if self.filter_defaults:
+            mask = X[:, 10] <= 0
+            X, y = X[mask], y[mask]
         if self.minority_rules:
             self._setup_rules()
             X = self._augment_with_rules(X)
-        sample_weights = self._compute_sample_weights(y)
-
-    def fit(self, X, y):
-        if self.minority_rules:
-            self._setup_rules()
-        sample_weights = self._compute_sample_weights(y)
+        if sample_weights is None:
+            sample_weights = self._compute_sample_weights(y)
         self.tree = build_tree(
             X, y, sample_weights,
             max_depth=self.max_depth,
@@ -377,7 +377,7 @@ class CARTDecisionTree:
                 self.tree = _prune_node_f1(self.tree, total_pc, self.ccp_alpha)
             else:
                 # Fallback: standard misclassification-rate pruning
-                self.tree = _prune_node_std(self.tree, X, y, self.ccp_alpha)  # noqa: F821  ponytail: old fn, drop when f1_pruning proven
+                self.tree = _prune_node_std(self.tree, X, y, self.ccp_alpha)  # noqa: F821  
 
         return self
 
@@ -396,6 +396,24 @@ class CARTDecisionTree:
         return np.column_stack(cols)
 
     def predict_proba(self, X):
+        if self.filter_defaults:
+            n = X.shape[0]
+            probas = np.zeros((n, 2))
+            def_mask = X[:, 10] > 0
+            no_def_idx = np.where(~def_mask)[0]
+            probas[def_mask] = [1.0, 0.0]
+            if len(no_def_idx) > 0:
+                X_sub = X[no_def_idx]
+                if self._rule_defs is not None:
+                    X_sub = self._maybe_augment(X_sub)
+                for i in range(X_sub.shape[0]):
+                    dist = predict_single(self.tree, X_sub[i])
+                    total = dist.sum()
+                    if total == 0:
+                        probas[no_def_idx[i]] = [1.0, 0.0]
+                    else:
+                        probas[no_def_idx[i]] = dist / total
+            return probas
         X = self._maybe_augment(X)
         probas = []
         for i in range(X.shape[0]):

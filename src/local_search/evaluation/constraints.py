@@ -24,7 +24,7 @@ def check_constraints(s, trajectory, params=None):
     violation_4 = max(0.0, abs(pi_T - p["pi_star"]) - 1.0)
 
     # C5: gradualisme penalty (soft smoothing — BOLEH lompat >50bps, tapi BAYAR penalty)
-    # ponytail: penalty makes landscape rugged, trade-off vs C2/C3/C4 gain
+    # penalty makes landscape rugged, trade-off vs C2/C3/C4 gain
     violation_5 = max(0.0, max(abs(s[t] - (p["r0"] if t == 0 else s[t - 1])) - 0.50 for t in range(T)))
     c5_ok = violation_5 == 0.0
 
