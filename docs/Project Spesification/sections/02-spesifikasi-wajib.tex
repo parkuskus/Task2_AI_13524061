@@ -56,7 +56,7 @@ Lintasan kebijakan harus membawa inflasi kembali ke dalam rentang sasaran resmi 
     \left| r_t - r_{t-1} \right| \leq 50 \text{ bps} \qquad \forall t
 \]
 
-Berbeda dengan C1-C4 yang bersifat \textit{hard constraint} (state harus memenuhi agar dinyatakan \textit{feasible}), C5 diperlakukan sebagai \textit{penalized constraint}, dimana perubahan suku bunga melebihi 50 bps diizinkan, namun dikenakan penalti kuadratik pada fungsi objektif. Pendekatan ini mencerminkan realitas kebijakan moneter, yaitu perubahan suku bunga yang terlalu agresif dapat mengguncang ekspektasi pasar dan merusak kredibilitas \textit{forward guidance} \cite{woodford2003}, namun dalam kondisi luar biasa (seperti krisis) bank sentral tetap dapat mengambil langkah drastis. Penalti C5 menciptakan \textit{trade-off} antara kecepatan penyesuaian suku bunga dan dampak terhadap output, sehingga permukaan fungsi objektif menjadi lebih \textit{rugged} dan memerlukan algoritma \textit{local search} yang lebih canggih untuk menemukan keseimbangan optimal.
+Berbeda dengan C1-C4 yang bersifat \textit{hard constraint} (state harus memenuhi agar dinyatakan \textit{feasible}), C5 diperlakukan sebagai \textit{penalized constraint}, dimana perubahan suku bunga melebihi 50 bps diizinkan, namun dikenakan penalti kuadratik pada fungsi objektif. Pendekatan ini mencerminkan realitas kebijakan moneter, yaitu perubahan suku bunga yang terlalu agresif dapat mengguncang ekspektasi pasar dan merusak kredibilitas \textit{forward guidance} \cite{woodford2003}, namun dalam kondisi luar biasa (seperti krisis) bank sentral tetap dapat mengambil langkah drastis.
 
 \section{\textit{Succesor Function}}
 
