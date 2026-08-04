@@ -56,7 +56,7 @@ Lintasan kebijakan harus membawa inflasi kembali ke dalam rentang sasaran resmi 
     \left| r_t - r_{t-1} \right| \leq 50 \text{ bps} \qquad \forall t
 \]
 
-Berbeda dengan C1-C4 yang bersifat \textit{hard constraint} (state harus memenuhi agar dinyatakan \textit{feasible}), C5 diperlakukan sebagai \textit{penalized constraint}: perubahan suku bunga melebihi 50 bps diizinkan, namun dikenakan penalti kuadratik pada fungsi objektif. Pendekatan ini mencerminkan realitas kebijakan moneter: perubahan suku bunga yang terlalu agresif dapat mengguncang ekspektasi pasar dan merusak kredibilitas \textit{forward guidance} \cite{woodford2003}, namun dalam kondisi luar biasa (seperti krisis) bank sentral tetap dapat mengambil langkah drastis. Penalti C5 menciptakan \textit{trade-off} antara kecepatan penyesuaian suku bunga dan dampak terhadap output, sehingga permukaan fungsi objektif menjadi lebih \textit{rugged} dan memerlukan algoritma \textit{local search} yang lebih canggih untuk menemukan keseimbangan optimal.
+Berbeda dengan C1-C4 yang bersifat \textit{hard constraint} (state harus memenuhi agar dinyatakan \textit{feasible}), C5 diperlakukan sebagai \textit{penalized constraint}, dimana perubahan suku bunga melebihi 50 bps diizinkan, namun dikenakan penalti kuadratik pada fungsi objektif. Pendekatan ini mencerminkan realitas kebijakan moneter, yaitu perubahan suku bunga yang terlalu agresif dapat mengguncang ekspektasi pasar dan merusak kredibilitas \textit{forward guidance} \cite{woodford2003}, namun dalam kondisi luar biasa (seperti krisis) bank sentral tetap dapat mengambil langkah drastis. Penalti C5 menciptakan \textit{trade-off} antara kecepatan penyesuaian suku bunga dan dampak terhadap output, sehingga permukaan fungsi objektif menjadi lebih \textit{rugged} dan memerlukan algoritma \textit{local search} yang lebih canggih untuk menemukan keseimbangan optimal.
 
 \section{\textit{Succesor Function}}
 
@@ -121,7 +121,7 @@ Pelanggaran dikuadratkan agar pelanggaran besar dikenakan penalti yang jauh lebi
 
 \section{Formulasi \textit{Initial State}}
 
-Initial state $s_0$ dibentuk secara acak dari seluruh rentang yang diizinkan: setiap $r_t$ dipilih secara acak dari distribusi uniform pada rentang $[r_{min}, r_{max}]$ lalu dibulatkan ke kelipatan 0,25\% terdekat, sehingga \textit{constraint} C1 secara implisit terpenuhi. Jika hasil pembangkitan acak tidak memenuhi C2 sampai C4, state tetap diterima sebagai initial state dalam status \textit{infeasible}, dan proses \textit{local search} bertugas mengarahkan pencarian menuju state yang \textit{feasible} sekaligus optimal melalui mekanisme penalti pada fungsi objektif.
+Initial state $s_0$ dibentuk secara acak dari seluruh rentang yang diizinkan. Setiap $r_t$ dipilih secara acak dari distribusi uniform pada rentang $[r_{min}, r_{max}]$ lalu dibulatkan ke kelipatan 0,25\% terdekat, sehingga \textit{constraint} C1 secara implisit terpenuhi. Jika hasil pembangkitan acak tidak memenuhi C2 sampai C4, state tetap diterima sebagai initial state dalam status \textit{infeasible}, dan proses \textit{local search} bertugas mengarahkan pencarian menuju state yang \textit{feasible} sekaligus optimal melalui mekanisme penalti pada fungsi objektif.
 
 \medskip
 \noindent\textbf{Kondisi awal sistem (periode $t = 0$).}
