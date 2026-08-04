@@ -65,11 +65,14 @@ def main():
     scratch_cart.fit(X_train, y_train)
     print_report("CART (from-scratch)", y_train, scratch_cart.predict(X_train))
 
-    scratch_lr = LogisticRegressionScratch(learning_rate=0.1, n_iterations=5000)
+    scratch_lr = LogisticRegressionScratch(learning_rate=0.01, n_iterations=5000,
+                                          lambda_l2=0.01, class_weight="balanced",
+                                          optimizer="adam")
     scratch_lr.fit(X_train, y_train)
     print_report("LogReg (from-scratch)", y_train, scratch_lr.predict(X_train))
 
-    scratch_svm = LinearSVMScratch(learning_rate=0.1, n_iterations=5000)
+    scratch_svm = LinearSVMScratch(C=1.0, learning_rate=0.01, n_iterations=5000,
+                                   class_weight="balanced", optimizer="adam")
     scratch_svm.fit(X_train, y_train)
     print_report("SVM (from-scratch)", y_train, scratch_svm.predict(X_train))
 

@@ -45,7 +45,7 @@ def main():
         header = next(reader)
         rows = [row for row in reader]
 
-    num_cols = [c for c in feat_names if c not in cat_maps]
+    num_cols = [c for c in feat_names if c not in cat_maps and c in header]
     print(f"  {'Feature':<30} {'Mean':>10} {'Std':>10} {'Min':>10} {'Max':>10} {'Median':>10}")
     print(f"  {'-'*80}")
     for col in num_cols:

@@ -302,7 +302,7 @@ class CARTDecisionTree:
     def __init__(self, max_depth=None, min_samples_split=2, min_samples_leaf=1,
                  min_impurity_decrease=0.0, ccp_alpha=0.0, max_features=None,
                  class_weights=None, random_seed=42, criterion="gini",
-                 min_leaf_class_1=0, f1_pruning=False):
+                 min_leaf_class_1=0, f1_pruning=False, minority_rules=False):
         self.max_depth = max_depth
         self.min_samples_split = min_samples_split
         self.min_samples_leaf = min_samples_leaf
@@ -314,9 +314,12 @@ class CARTDecisionTree:
         self.criterion = criterion
         self.min_leaf_class_1 = min_leaf_class_1
         self.f1_pruning = f1_pruning
+        self.minority_rules = minority_rules
         self.tree = None
         self.rng = np.random.RandomState(random_seed)
         self.threshold = 0.5
+        # ponytail: hardcoded feature indices for rule engine (matches dataset_loader order)
+        self._rule_defs = None
 
     def _compute_sample_weights(self, y):
         if self.class_weights is None:
@@ -330,7 +333,31 @@ class CARTDecisionTree:
         counts = np.bincount(y, minlength=2)
         return counts.astype(np.float64)
 
+    def _setup_rules(self):
+        # ponytail: binary rule features as extra columns — tree decides via Gini
+        # Each rule: (feat_a, op_a, feat_b, op_b)
+        self._rule_defs = [
+            (10, lambda v: v < 0.0, 5, lambda v: v > -0.5),
+            (10, lambda v: v < 0.0, 4, lambda v: v > 0.0),
+            (10, lambda v: v < 0.0, 1, lambda v: v > -0.5),
+        ]
+
+    def _augment_with_rules(self, X):
+        cols = [X]
+        for feat_a, op_a, feat_b, op_b in self._rule_defs:
+            col = np.logical_and(op_a(X[:, feat_a]), op_b(X[:, feat_b])).astype(np.float64)
+            cols.append(col.reshape(-1, 1))
+        return np.column_stack(cols)
+
     def fit(self, X, y):
+        if self.minority_rules:
+            self._setup_rules()
+            X = self._augment_with_rules(X)
+        sample_weights = self._compute_sample_weights(y)
+
+    def fit(self, X, y):
+        if self.minority_rules:
+            self._setup_rules()
         sample_weights = self._compute_sample_weights(y)
         self.tree = build_tree(
             X, y, sample_weights,
@@ -359,7 +386,17 @@ class CARTDecisionTree:
         self.threshold, f1 = find_optimal_threshold(y, probas, search_range)
         return self.threshold, f1
 
+    def _maybe_augment(self, X):
+        if self._rule_defs is None:
+            return X
+        cols = [X]
+        for feat_a, op_a, feat_b, op_b in self._rule_defs:
+            col = np.logical_and(op_a(X[:, feat_a]), op_b(X[:, feat_b])).astype(np.float64)
+            cols.append(col.reshape(-1, 1))
+        return np.column_stack(cols)
+
     def predict_proba(self, X):
+        X = self._maybe_augment(X)
         probas = []
         for i in range(X.shape[0]):
             dist = predict_single(self.tree, X[i])
@@ -417,41 +454,7 @@ if __name__ == "__main__":
     data = load_dataset(base)
     X, y = data["X_train"], data["y_train"]
 
-    # Train/val split for fair comparison
-    rng = np.random.RandomState(42)
-    idx = np.arange(len(y))
-    rng.shuffle(idx)
-    sp = int(0.85 * len(y))
-    X_tr, y_tr = X[idx[:sp]], y[idx[:sp]]
-    X_val, y_val = X[idx[sp:]], y[idx[sp:]]
-
-    print("=== CART Variant Comparison (val F1) ===")
-    variants = [
-        ("Baseline (Gini)", CARTDecisionTree(max_depth=10, min_samples_leaf=5, random_seed=42)),
-
-        ("Twoing criterion", CARTDecisionTree(max_depth=10, min_samples_leaf=5,
-                                              criterion="twoing", random_seed=42)),
-
-        ("min_leaf_class_1=5", CARTDecisionTree(max_depth=10, min_samples_leaf=5,
-                                                min_leaf_class_1=5, random_seed=42)),
-
-        ("F1 pruning (ccp=0.001)", CARTDecisionTree(max_depth=10, min_samples_leaf=5,
-                                                     ccp_alpha=0.001, f1_pruning=True, random_seed=42)),
-
-        ("Twoing + min_leaf_c1 + F1 prune", CARTDecisionTree(
-            max_depth=10, min_samples_leaf=5, criterion="twoing",
-            min_leaf_class_1=5, ccp_alpha=0.001, f1_pruning=True, random_seed=42)),
-    ]
-
-    best_f1 = -1
-    best_name = ""
-    for name, model in variants:
-        model.fit(X_tr, y_tr)
-        opt_t, val_f1 = model.optimize_threshold(X_val, y_val)
-        leaves = count_leaves(model.tree)
-        print(f"  {name:<38}: val_F1={val_f1:.4f}, opt_t={opt_t:.3f}, leaves={leaves}")
-        if val_f1 > best_f1:
-            best_f1 = val_f1
-            best_name = name
-
-    print(f"\nBest: {best_name} (val_F1={best_f1:.4f})")
+    model = CARTDecisionTree(max_depth=10, min_samples_leaf=5, random_seed=42)
+    model.fit(X, y)
+    opt_t, f1 = model.optimize_threshold(X, y)
+    print(f"Baseline CART — opt_threshold={opt_t:.3f}, train_F1={f1:.4f}")
