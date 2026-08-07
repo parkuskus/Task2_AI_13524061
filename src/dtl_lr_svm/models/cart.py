@@ -468,7 +468,7 @@ if __name__ == "__main__":
     sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
     from utils.loader import load_dataset
 
-    base = os.path.join(os.path.dirname(__file__), "..", "..", "dataset")
+    base = os.path.join(os.path.dirname(__file__), "..", "..", "..", "dataset")
     data = load_dataset(base)
     X, y = data["X_train"], data["y_train"]
 

@@ -45,7 +45,7 @@ def print_report(name, y_true, y_pred):
 
 
 def main():
-    base = os.path.join(os.path.dirname(__file__), "..", "..", "dataset")
+    base = os.path.join(os.path.dirname(__file__), "..", "..", "..", "dataset")
     data = load_dataset(base)
 
     X_train, y_train = data["X_train"], data["y_train"]

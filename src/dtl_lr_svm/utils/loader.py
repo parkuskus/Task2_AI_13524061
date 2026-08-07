@@ -109,7 +109,7 @@ def load_dataset(data_dir, train_file="train.csv", test_file="test.csv",
 
 
 if __name__ == "__main__":
-    base = os.path.join(os.path.dirname(__file__), "..", "..", "dataset")
+    base = os.path.join(os.path.dirname(__file__), "..", "..", "..", "dataset")
     data = load_dataset(base)
     print(f"X_train: {data['X_train'].shape}, y_train: {data['y_train'].shape}")
     print(f"X_test: {data['X_test'].shape}")
