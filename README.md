@@ -7,28 +7,44 @@ Repository for Task #2 Seleksi Laboratorium Intelegensi Buatan.
 ```
 Task2_AI_13524061/
 ├── src/
-│   ├── local_search/     # PoC Local Search
-│   └── dtl_lr_svm/       # Implementasi DTL, LR, SVM
-├── notebooks/
-│   ├── local_search/     # Notebook eksperimen Local Search
-│   └── dtl_lr_svm/       # Notebook eksperimen DTL, LR, SVM
+│   ├── local_search/         # PoC Local Search
+│   └── dtl_lr_svm/           # Implementasi DTL, LR, SVM (modular)
+│       ├── main.py           # Runner utama ketiga algoritma
+│       ├── best_cart.py      # Submission generator (CART final)
+│       ├── models/           # Implementasi algoritma from-scratch
+│       │   ├── cart.py       # CART (Gini, Twoing, CCP, F1 pruning)
+│       │   ├── logreg.py     # Logistic Regression (BCE + Adam)
+│       │   ├── svm.py        # Linear SVM (Hinge + Adam)
+│       │   └── adaboost.py   # AdaBoost (bonus)
+│       └── utils/            # Utility
+│           ├── loader.py     # Data loading + preprocessing
+│           ├── eda.py        # Exploratory Data Analysis
+│           └── compare.py    # Perbandingan from-scratch vs sklearn
+│           └── compare.py    # Perbandingan from-scratch vs sklearn
+├── notebooks/                # Notebook eksperimen (local search)
 ├── docs/
-│   └── Task2_AI_13524061.pdf  # PDF gabungan spesifikasi & write-up
-├── .gitignore
-├── LICENSE
+│   └── Write-Up/
+│       └── Kaggle_Writeup.tex
+├── extra/                    # Data tambahan & submission
+│   ├── cart_submission_hyperparam.csv
+│   └── submission_cart.csv
 └── README.md
 ```
 
 ## Cara Menjalankan
 
 ```bash
-# Local Search PoC
-cd src/local_search
-python main.py
+# Generate submission (CART best config)
+python src/dtl_lr_svm/best_cart.py
 
-# DTL, LR, SVM
-cd src/dtl_lr_svm
-python main.py
+# Runner ketiga algoritma (DTL, LR, SVM)
+python src/dtl_lr_svm/main.py
+
+# EDA
+python src/dtl_lr_svm/utils/eda.py
+
+# Perbandingan with scikit-learn
+python src/dtl_lr_svm/utils/compare.py
 ```
 
 ## Kaggle Competition

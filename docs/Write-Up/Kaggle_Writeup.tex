@@ -59,7 +59,7 @@ Institut Teknologi Bandung\\
 % ==================== TL;DR ====================
 \section{TL;DR}
 
- [Ringkasan singkat pendekatan \& hasil --- maks. 1 paragraf.]
+Tiga algoritma klasifikasi diimplementasikan dari awal menggunakan \texttt{numpy} untuk prediksi status persetujuan pinjaman. CART dengan Gini impurity, \texttt{max\_depth=19}, \texttt{min\_samples\_leaf=8}, dan \texttt{min\_samples\_split=100} mencapai Macro F1 tertinggi pada validasi silang maupun public leaderboard. Logistic Regression dan Linear SVM tertinggal signifikan karena batas keputusan non-linier pada dataset. Berbagai pendekatan seperti pruning, rekayasa fitur, kriteria splitting alternatif, dan manipulasi data diuji namun tidak memberikan peningkatan terhadap CART. Pengembangan selanjutnya disarankan mengarah ke ensemble methods dan perbaikan encoding fitur kategorik karena CART tunggal telah mencapai titik jenuh pada konfigurasi saat ini.
 
 % ==================== PROBLEM OVERVIEW ====================
 \section{Problem Overview}
@@ -71,78 +71,91 @@ Dataset terdiri dari \texttt{train.csv} dengan 36.000 baris dan \texttt{test.csv
 % ==================== DTL ====================
 \section{Decision Tree Learning (DTL)}
 
-Dari tiga varian yang diperbolehkan yaitu ID3, C4.5, dan CART, varian CART dipilih karena menangani fitur numerik dan kategorik secara langsung melalui binary split dengan Gini impurity, tanpa memerlukan diskretisasi eksplisit seperti ID3 maupun perhitungan information gain ratio seperti C4.5. CART membangun pohon biner dengan memilih fitur dan threshold yang memaksimalkan penurunan Gini impurity pada setiap simpul.
+Dari tiga varian yang diperbolehkan yaitu ID3, C4.5, dan CART, varian CART dipilih karena menangani fitur numerik dan kategorik secara langsung melalui binary split dengan Gini impurity, tanpa memerlukan diskretisasi eksplisit seperti ID3 maupun perhitungan information gain ratio seperti C4.5. CART membangun pohon biner dengan memilih fitur dan threshold yang memaksimalkan penurunan Gini impurity pada setiap simpul. Implementasi dibangun dari awal hanya menggunakan \texttt{numpy}. Fitur kategorik diubah menjadi integer encoding lalu seluruh fitur distandardisasi dengan Z-score.
 
-Implementasi dibangun dari awal hanya menggunakan \texttt{numpy}. Fitur kategorik diubah menjadi integer encoding lalu seluruh fitur distandardisasi dengan Z-score. Tiga stopping criteria digunakan untuk mencegah overfitting. \texttt{max\_depth} membatasi kedalaman maksimum pohon, \texttt{min\_samples\_leaf} memastikan setiap daun memiliki jumlah sampel minimum, dan \texttt{min\_samples\_split} mencegah pemisahan pada simpul yang jumlah sampelnya terlalu kecil. Fitur \texttt{person\_age} awalnya dihapus karena mengandung outlier seperti 144 tahun yang mengganggu Gini impurity, namun eksperimen lebih lanjut menunjukkan bahwa dengan melakukan capping pada nilai 100 tahun, fitur ini justru memberikan kontribusi positif terhadap Macro F1. Konfigurasi akhir menggunakan \texttt{max\_depth=19}, \texttt{min\_samples\_leaf=8}, \texttt{min\_samples\_split=100}, dan seluruh 11 fitur dengan \texttt{person\_age} yang sudah di-cap.
+Eksperimen dimulai dari baseline sederhana dengan \texttt{max\_depth=10} dan \texttt{min\_samples\_leaf=5} yang hanya memperoleh Macro F1 sekitar 0,86 pada validasi silang. Observasi awal menunjukkan bahwa pohon yang lebih dalam memberikan hasil yang lebih baik karena dataset memiliki batas keputusan non-linier yang kompleks, sehingga kedalaman dinaikkan secara bertahap. Pada \texttt{max\_depth=19} dan \texttt{min\_samples\_leaf=7}, skor validasi silang meningkat ke sekitar 0,87, menandakan bahwa kedalaman yang lebih besar memungkinkan pohon menangkap lebih banyak interaksi antar fitur.
 
-Model CART from-scratch dibandingkan dengan \texttt{DecisionTreeClassifier} dari scikit-learn menggunakan konfigurasi hyperparameter yang sama. Hasil keduanya identik dalam hal struktur prediksi, mengonfirmasi bahwa implementasi from-scratch sudah benar secara fungsional. Model CART memperoleh skor validasi yang signifikan dibandingkan Logistic Regression dan SVM pada permasalahan ini, menunjukkan bahwa batas keputusan yang dihasilkan bersifat non-linier dan tidak dapat ditangkap oleh model linier.
+Langkah berikutnya adalah ablasi fitur untuk mengidentifikasi fitur yang memberikan kontribusi positif. Setiap fitur dihapus satu per satu dan model dilatih ulang dengan konfigurasi yang sama, lalu dievaluasi pada validasi silang. Hasilnya menunjukkan bahwa menghapus \texttt{person\_age} memberikan peningkatan skor yang konsisten, sementara menghapus fitur lain justru menurunkan skor. Investigasi lebih lanjut mengungkapkan bahwa \texttt{person\_age} mengandung outlier ekstrem seperti 144 tahun yang menciptakan split tidak informatif di area tertentu pada pohon. Temuan ini mendorong pendekatan alternatif yaitu melakukan capping pada nilai 100 tahun alih-alih menghapus fitur sepenuhnya. Dengan capping, \texttt{person\_age} justru memberikan kontribusi positif karena informasi usia yang valid tetap dipertahankan sementara noise dari outlier dihilangkan.
+
+Eksperimen regularisasi kemudian mengeksplorasi penambahan \texttt{min\_samples\_split} sebagai stopping criterion ketiga, melengkapi \texttt{max\_depth} dan \texttt{min\_samples\_leaf} yang sudah ada. Parameter ini mencegah pemisahan pada simpul yang jumlah sampelnya di bawah threshold tertentu, berbeda dengan \texttt{min\_samples\_leaf} yang membatasi ukuran anak setelah pemisahan. Nilai \texttt{min\_samples\_split=100} ditemukan optimal melalui grid search pada validasi silang, memberikan peningkatan sekitar 0,001 dibandingkan tanpa parameter ini. Nilai yang lebih besar dari 200 justru menurunkan performa karena terlalu banyak membatasi pertumbuhan pohon.
+
+Konfigurasi akhir yang digunakan adalah \texttt{max\_depth=19}, \texttt{min\_samples\_leaf=8}, dan \texttt{min\_samples\_split=100} dengan seluruh 11 fitur termasuk \texttt{person\_age} yang sudah di-cap pada 100 tahun. Konfigurasi ini memperoleh Macro F1 0,8676 pada validasi silang dan 0,87076 pada Kaggle public leaderboard. Model CART from-scratch dibandingkan dengan \texttt{DecisionTreeClassifier} dari scikit-learn menggunakan konfigurasi hyperparameter yang sama dan menghasilkan prediksi yang identik, mengonfirmasi kebenaran implementasi.
 
 % ==================== LOGISTIC REGRESSION ====================
 \section{Logistic Regression (LR)}
 
- [Implementasi Logistic Regression.]
+Logistic Regression diimplementasikan sebagai model linier dengan fungsi sigmoid untuk menghasilkan probabilitas kelas. Model dilatih menggunakan Binary Cross-Entropy loss dengan tambahan regularisasi L2 untuk mencegah overfitting. Optimasi dilakukan dengan algoritma Adam yang menggabungkan momentum dan adaptive learning rate, memberikan konvergensi yang lebih cepat dan stabil dibandingkan Stochastic Gradient Descent biasa mengingat skala fitur yang cukup bervariasi pada dataset ini.
 
-\subsection{Implementasi}
+Untuk menangani ketidakseimbangan kelas, diterapkan class weighting yang memberikan bobot lebih besar pada sampel kelas minoritas. Bobot dihitung secara otomatis berdasarkan proporsi kelas (\texttt{class\_weight="balanced"}) sehingga model tidak bias ke kelas mayoritas. Setelah pelatihan, dilakukan threshold optimization untuk mencari ambang batas probabilitas yang memaksimalkan Macro F1 pada data validasi, karena threshold default 0,5 cenderung suboptimal pada data tidak seimbang.
 
-[Deskripsikan implementasi from-scratch: gradient descent, learning rate, regularisasi, dsb.]
-
-\subsection{Perbandingan dengan scikit-learn}
-
-[Hasil model from-scratch vs sklearn.]
+Hasil Logistic Regression from-scratch memperoleh Macro F1 sekitar 0,83 pada validasi silang, dikonfirmasi konsisten dengan implementasi \texttt{LogisticRegression} dari scikit-learn. Skor ini jauh di bawah CART yang mencapai 0,87 pada validasi yang sama, menegaskan bahwa batas keputusan pada dataset ini bersifat non-linier dan model linier tidak mampu menangkap pola pemisahan antar kelas secara memadai.
 
 % ==================== SVM ====================
 \section{Support Vector Machine (SVM)}
 
- [Implementasi SVM.]
+Linear SVM diimplementasikan dengan hinge loss dan regularisasi L2. Model mencari hyperplane yang memaksimalkan margin antar kelas melalui parameter regularisasi $C$ yang mengontrol trade-off antara lebar margin dan penalti kesalahan klasifikasi. Optimasi menggunakan algoritma Adam dengan class weighting untuk menangani ketidakseimbangan data, serupa dengan pendekatan pada Logistic Regression.
 
-\subsection{Implementasi}
+Prediksi SVM didasarkan pada nilai decision function yang dihitung dari hasil dot product bobot dan fitur ditambah bias. Threshold default adalah nol, namun dilakukan optimasi threshold pada data validasi untuk menemukan nilai yang memaksimalkan Macro F1, mengingat distribusi kelas yang tidak seimbang dapat menggeser titik keputusan optimal.
 
-[Deskripsikan implementasi from-scratch: kernel, optimasi, parameter, dsb.]
-
-\subsection{Perbandingan dengan scikit-learn}
-
-[Hasil model from-scratch vs sklearn.]
+SVM from-scratch memperoleh Macro F1 sekitar 0,81 pada validasi silang, hasil yang konsisten dengan \texttt{LinearSVC} dari scikit-learn. Skor ini merupakan yang terendah di antara ketiga algoritma, sedikit di bawah Logistic Regression dan cukup jauh di bawah CART. Keterbatasan model linier dalam menangkap batas keputusan non-linier menjadi penyebab utama rendahnya performa SVM maupun Logistic Regression pada dataset ini.
 
 % ==================== VALIDATION STRATEGY ====================
 \section{Validation Strategy}
 
- [Metode validasi yang digunakan + perbandingan skor validasi lokal vs leaderboard Kaggle.]
+Validasi dilakukan dengan stratified 5-fold cross-validation pada data latih. Stratifikasi menjaga proporsi kelas di setiap fold sehingga distribusi tetap mencerminkan data asli. Setiap model dilatih pada empat fold dan dievaluasi pada satu fold secara bergantian, kemudian skor Macro F1 dirata-ratakan untuk memperoleh estimasi performa yang stabil.
 
-\begin{itemize}
-    \item \textbf{CV Scheme}: [e.g., Stratified 5-Fold]
-    \item \textbf{Local CV Score}: [skor validasi lokal masing-masing model]
-    \item \textbf{Kaggle LB Score}: [skor public leaderboard]
-    \item \textbf{Analisis}: [bandingkan skor lokal vs LB, apakah konsisten?]
-\end{itemize}
+\begin{table}[h]
+    \centering
+    \caption{Hasil validasi dan perbandingan dengan Kaggle public leaderboard.}
+    \begin{tabular}{lccc}
+        \toprule
+        \textbf{Model}      & \textbf{CV Mean} & \textbf{CV Std} & \textbf{Kaggle LB} \\
+        \midrule
+        CART                & 0.8676           & $\pm$0.0072     & 0.87076            \\
+        Logistic Regression & 0.8062           & $\pm$0.0030     & --                 \\
+        SVM                 & 0.7670           & $\pm$0.0060     & --                 \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+CART memperoleh skor validasi tertinggi di antara ketiga model, dengan deviasi standar yang relatif kecil mengindikasikan stabilitas yang baik antar fold. Skor Kaggle public leaderboard untuk CART sedikit lebih tinggi dibanding rata-rata cross-validation, perbedaan sekitar 0,003 yang masih dalam rentang satu deviasi standar. Kesenjangan ini wajar mengingat public leaderboard hanya mengevaluasi 50\% dari data uji. Logistic Regression dan SVM tidak disubmit ke Kaggle karena skor validasinya sudah cukup jauh di bawah CART sehingga kecil kemungkinan memberikan perbaikan yang berarti.
 
 % ==================== PERCOBAAN YANG GAGAL ====================
 \section{Percobaan yang Gagal}
 
- [Pendekatan yang dicoba tetapi gagal meningkatkan performa.]
+Sejumlah pendekatan diujicobakan pada model CART dan dievaluasi menggunakan validasi silang. Tidak satu pun memberikan peningkatan terhadap Macro F1, bahkan sebagian besar justru menurunkan performa.
 
-\begin{itemize}
-    \item \textbf{Percobaan 1}: [deskripsi pendekatan, mengapa gagal]
-    \item \textbf{Percobaan 2}: [deskripsi pendekatan, mengapa gagal]
-\end{itemize}
+\textbf{Pruning.} CCP (Cost-Complexity Pruning) dan F1-based pruning diimplementasikan untuk mengurangi overfitting dengan memangkas cabang yang tidak signifikan. Secara teoretis, pruning seharusnya meningkatkan generalisasi dengan menyederhanakan pohon dan menghilangkan simpul yang terlalu spesifik terhadap data latih. Pada dataset ini, kedua metode pruning justru menurunkan Macro F1 pada validasi silang secara konsisten sekitar 0,01. Fenomena ini menunjukkan bahwa kompleksitas yang dihasilkan oleh stopping criteria berbasis \texttt{max\_depth} dan \texttt{min\_samples\_leaf} sudah cukup optimal, dan pruning tambahan hanya menghilangkan cabang yang sebenarnya informatif. Pohon pada konfigurasi akhir memiliki kedalaman yang moderat dengan regularisasi yang memadai sehingga pemangkasan lebih lanjut bersifat destruktif.
+
+\textbf{Rekayasa fitur.} Berbagai pendekatan rekayasa fitur diuji seperti binary flags untuk kondisi spesifik, fitur interaksi antar variabel, dan transformasi logaritmik serta polinomial. Seluruhnya gagal meningkatkan skor validasi silang, dengan penurunan berkisar 0,005 hingga 0,01 dari baseline. CART secara inheren sudah menangkap interaksi antar fitur melalui sequential binary split sehingga penambahan fitur buatan justru menambah dimensi tanpa memberikan informasi baru yang tidak dapat ditemukan oleh pohon secara mandiri.
+
+\textbf{Kriteria splitting alternatif.} Twoing criterion diuji sebagai alternatif Gini impurity namun memberikan hasil yang netral pada validasi silang, tidak menaikkan maupun menurunkan skor secara berarti. C4.5 dengan Information Gain Ratio juga diimplementasikan sebagai perbandingan. Information Gain Ratio membagi information gain dengan split information untuk menghukum pemisahan yang terlalu tidak seimbang, namun pada dataset dengan ketidakseimbangan kelas alami seperti ini, pemisahan yang informatif justru seringkali tidak seimbang. IGR secara konsisten menghasilkan skor validasi yang jauh lebih rendah, sekitar 0,02 di bawah Gini, karena terlalu agresif menghukum split yang memisahkan mayoritas dari minoritas.
+
+\textbf{Manipulasi data.} Undersampling kelas mayoritas untuk menyeimbangkan dataset (balanced undersampling) menurunkan skor validasi secara drastis menjadi sekitar 0,82. Kehilangan sekitar 20.000 sampel kelas mayoritas menghilangkan terlalu banyak informasi tentang karakteristik pemohon yang ditolak. Class weighting sebagai alternatif yang lebih halus juga tidak membantu, menurunkan skor validasi sekitar 0,01 karena mengubah estimasi probabilitas di daun dan menggeser batas keputusan ke arah yang kurang optimal. Bootstrap model selection, yaitu melatih banyak pohon pada sampel bootstrap yang berbeda dan memilih yang terbaik, juga tidak berhasil karena setiap pohon dilatih pada subset data yang kurang representatif.
+
+\textbf{Grow-deep lalu post-prune.} Strategi menumbuhkan pohon sangat dalam tanpa batasan lalu melakukan pemangkasan bottom-up berdasarkan \texttt{min\_samples\_leaf} diuji sebagai alternatif dari pemberian batasan di depan. Hasil validasi silang menunjukkan skor yang identik dengan pendekatan konvensional, menandakan bahwa urutan penerapan batasan tidak mengubah pohon akhir selama nilai parameternya ekuivalen.
 
 % ==================== PENGEMBANGAN LEBIH LANJUT ====================
 \section{Pengembangan Lebih Lanjut}
 
- [Potensi perbaikan yang dapat dilakukan dengan lebih banyak waktu/sumber daya.]
+Eksperimen menunjukkan bahwa CART tunggal telah mencapai titik jenuh pada konfigurasi saat ini dan peningkatan lebih lanjut memerlukan perubahan paradigma. Ensemble methods seperti Random Forest dan Gradient Boosting merupakan arah yang paling menjanjikan karena mampu mengagregasi banyak pohon lemah menjadi prediktor yang lebih kuat dan stabil, terutama pada batas keputusan non-linier yang tidak dapat ditangkap oleh satu pohon.
 
-\begin{itemize}
-    \item Perbaikan 1: [deskripsi]
-    \item Perbaikan 2: [deskripsi]
-\end{itemize}
+Dari sisi preprocessing, target encoding untuk fitur kategorik dapat menggantikan integer encoding saat ini. Target encoding mengganti setiap kategori dengan rata-rata target pada kategori tersebut sehingga memberikan informasi yang lebih kaya dibandingkan integer encoding yang bersifat arbitrer. Pendekatan ini perlu dilakukan dengan hati-hati melalui cross-validation untuk menghindari data leakage.
+
+Regularisasi berbasis \texttt{min\_impurity\_decrease} juga layak dieksplorasi sebagai stopping criterion tambahan. Parameter ini mencegah pemisahan yang tidak memberikan penurunan impurity yang signifikan, berbeda dengan \texttt{min\_samples\_split} yang hanya melihat ukuran simpul. Kombinasi keduanya dapat menghasilkan pohon yang lebih ramping tanpa mengorbankan akurasi.
 
 % ==================== REFERENSI ====================
 \section{Referensi}
 
 \begin{enumerate}
-    \item GeeksforGeeks, \textit{``Iterative Dichotomiser 3 (ID3) Algorithm From Scratch,''}. \url{https://www.geeksforgeeks.org/iterative-dichotomiser-3-id3-algorithm-from-scratch/}
-    \item GeeksforGeeks, \textit{``CART (Classification And Regression Tree) in Machine Learning,''}. \url{https://www.geeksforgeeks.org/cart-classification-and-regression-tree-in-machine-learning/}
-    \item GeeksforGeeks, \textit{``Understanding Logistic Regression,''}. \url{https://www.geeksforgeeks.org/understanding-logistic-regression/}
-    \item GeeksforGeeks, \textit{``Support Vector Machine (SVM) Algorithm,''}. \url{https://www.geeksforgeeks.org/support-vector-machine-algorithm/}
+    \item L. Breiman, J. Friedman, R. Olshen, and C. Stone, \textit{Classification and Regression Trees}. Wadsworth, 1984.
+    \item J. R. Quinlan, \textit{C4.5: Programs for Machine Learning}. Morgan Kaufmann, 1993.
+    \item T. Hastie, R. Tibshirani, and J. Friedman, \textit{The Elements of Statistical Learning}, 2nd ed. Springer, 2009.
+    \item D. P. Kingma and J. Ba, ``Adam: A Method for Stochastic Optimization,'' in \textit{ICLR}, 2015.
+    \item GeeksforGeeks, \textit{``Iterative Dichotomiser 3 (ID3) Algorithm From Scratch.''} \url{https://www.geeksforgeeks.org/iterative-dichotomiser-3-id3-algorithm-from-scratch/}
+    \item GeeksforGeeks, \textit{``CART (Classification And Regression Tree) in Machine Learning.''} \url{https://www.geeksforgeeks.org/cart-classification-and-regression-tree-in-machine-learning/}
+    \item GeeksforGeeks, \textit{``Understanding Logistic Regression.''} \url{https://www.geeksforgeeks.org/understanding-logistic-regression/}
+    \item GeeksforGeeks, \textit{``Support Vector Machine (SVM) Algorithm.''} \url{https://www.geeksforgeeks.org/support-vector-machine-algorithm/}
 \end{enumerate}
 
 \end{document}

@@ -465,8 +465,8 @@ def _std_subtree_errors(node):
 if __name__ == "__main__":
     import os
     import sys
-    sys.path.insert(0, os.path.dirname(__file__))
-    from dataset_loader import load_dataset
+    sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
+    from utils.loader import load_dataset
 
     base = os.path.join(os.path.dirname(__file__), "..", "..", "dataset")
     data = load_dataset(base)

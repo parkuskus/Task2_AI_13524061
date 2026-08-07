@@ -5,8 +5,8 @@ import sys
 import numpy as np
 import csv
 
-sys.path.insert(0, os.path.dirname(__file__))
-from dataset_loader import load_dataset
+sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
+from utils.loader import load_dataset
 
 
 def print_section(title):

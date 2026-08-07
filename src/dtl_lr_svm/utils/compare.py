@@ -9,9 +9,9 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.svm import LinearSVC
 from sklearn.metrics import classification_report, confusion_matrix, f1_score
 
-sys.path.insert(0, os.path.dirname(__file__))
-from dataset_loader import load_dataset
-from dtl_cart import CARTDecisionTree
+sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
+from utils.loader import load_dataset
+from models.cart import CARTDecisionTree
 
 
 def macro_f1_score(y_true, y_pred):
@@ -25,8 +25,8 @@ def macro_f1_score(y_true, y_pred):
         f1 = 2 * prec * rec / (prec + rec) if (prec + rec) > 0 else 0.0
         f1s.append(f1)
     return sum(f1s) / len(f1s)
-from logreg import LogisticRegressionScratch
-from svm import LinearSVMScratch
+from models.logreg import LogisticRegressionScratch
+from models.svm import LinearSVMScratch
 
 
 def print_report(name, y_true, y_pred):

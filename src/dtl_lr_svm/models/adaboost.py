@@ -8,9 +8,9 @@ import numpy as np
 import os
 import sys
 
-sys.path.insert(0, os.path.dirname(__file__))
+sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
-from dtl_cart import CARTDecisionTree, macro_f1_score
+from models.cart import CARTDecisionTree, macro_f1_score
 
 
 class AdaBoostCART:
@@ -131,7 +131,7 @@ class AdaBoostCART:
 
 
 if __name__ == "__main__":
-    from dataset_loader import load_dataset
+    from utils.loader import load_dataset
 
     base = os.path.join(os.path.dirname(__file__), "..", "..", "dataset")
     data = load_dataset(base)

@@ -71,7 +71,7 @@ class CART:
 
 def load_with_age_capped(dataset_dir):
     """Load dataset with person_age capped at 100 to remove outliers."""
-    from dataset_loader import load_csv, build_feature_matrix
+    from utils.loader import load_csv, build_feature_matrix
 
     train_path = os.path.join(dataset_dir, "train.csv")
     test_path = os.path.join(dataset_dir, "test.csv")
