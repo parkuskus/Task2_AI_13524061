@@ -71,19 +71,11 @@ Dataset terdiri dari \texttt{train.csv} dengan 36.000 baris dan \texttt{test.csv
 % ==================== DTL ====================
 \section{Decision Tree Learning (DTL)}
 
- [Implementasi DTL \& pertimbangan pemilihan varian (ID3, C4.5, atau CART).]
+Dari tiga varian yang diperbolehkan yaitu ID3, C4.5, dan CART, varian CART dipilih karena menangani fitur numerik dan kategorik secara langsung melalui binary split dengan Gini impurity, tanpa memerlukan diskretisasi eksplisit seperti ID3 maupun perhitungan information gain ratio seperti C4.5. CART membangun pohon biner dengan memilih fitur dan threshold yang memaksimalkan penurunan Gini impurity pada setiap simpul.
 
-\subsection{Pemilihan Varian}
+Implementasi dibangun dari awal hanya menggunakan \texttt{numpy}. Fitur kategorik diubah menjadi integer encoding lalu seluruh fitur distandardisasi dengan Z-score. Tiga stopping criteria digunakan untuk mencegah overfitting. \texttt{max\_depth} membatasi kedalaman maksimum pohon, \texttt{min\_samples\_leaf} memastikan setiap daun memiliki jumlah sampel minimum, dan \texttt{min\_samples\_split} mencegah pemisahan pada simpul yang jumlah sampelnya terlalu kecil. Fitur \texttt{person\_age} awalnya dihapus karena mengandung outlier seperti 144 tahun yang mengganggu Gini impurity, namun eksperimen lebih lanjut menunjukkan bahwa dengan melakukan capping pada nilai 100 tahun, fitur ini justru memberikan kontribusi positif terhadap Macro F1. Konfigurasi akhir menggunakan \texttt{max\_depth=19}, \texttt{min\_samples\_leaf=8}, \texttt{min\_samples\_split=100}, dan seluruh 11 fitur dengan \texttt{person\_age} yang sudah di-cap.
 
-[Jelaskan varian yang dipilih dan alasan.]
-
-\subsection{Implementasi}
-
-[Deskripsikan implementasi from-scratch: kriteria splitting, penanganan fitur numerik/kategorik, stopping criteria, dsb.]
-
-\subsection{Perbandingan dengan scikit-learn}
-
-[Hasil model from-scratch vs sklearn.]
+Model CART from-scratch dibandingkan dengan \texttt{DecisionTreeClassifier} dari scikit-learn menggunakan konfigurasi hyperparameter yang sama. Hasil keduanya identik dalam hal struktur prediksi, mengonfirmasi bahwa implementasi from-scratch sudah benar secara fungsional. Model CART memperoleh skor validasi yang signifikan dibandingkan Logistic Regression dan SVM pada permasalahan ini, menunjukkan bahwa batas keputusan yang dihasilkan bersifat non-linier dan tidak dapat ditangkap oleh model linier.
 
 % ==================== LOGISTIC REGRESSION ====================
 \section{Logistic Regression (LR)}
