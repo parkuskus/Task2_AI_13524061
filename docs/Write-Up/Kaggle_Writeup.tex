@@ -1,5 +1,6 @@
 \documentclass{article}
 \usepackage{nips15submit_e,times}
+\usepackage{amsmath}
 \usepackage[margin=0.7in]{geometry}
 \usepackage{hyperref}
 \usepackage{url}
@@ -79,7 +80,21 @@ Langkah berikutnya adalah ablasi fitur untuk mengidentifikasi fitur yang memberi
 
 Eksperimen regularisasi kemudian mengeksplorasi penambahan \texttt{min\_samples\_split} sebagai stopping criterion ketiga, melengkapi \texttt{max\_depth} dan \texttt{min\_samples\_leaf} yang sudah ada. Parameter ini mencegah pemisahan pada simpul yang jumlah sampelnya di bawah threshold tertentu, berbeda dengan \texttt{min\_samples\_leaf} yang membatasi ukuran anak setelah pemisahan. Nilai \texttt{min\_samples\_split=100} ditemukan optimal melalui grid search pada validasi silang, memberikan peningkatan sekitar 0,001 dibandingkan tanpa parameter ini. Nilai yang lebih besar dari 200 justru menurunkan performa karena terlalu banyak membatasi pertumbuhan pohon.
 
-Konfigurasi akhir yang digunakan adalah \texttt{max\_depth=19}, \texttt{min\_samples\_leaf=8}, dan \texttt{min\_samples\_split=100} dengan seluruh 11 fitur termasuk \texttt{person\_age} yang sudah di-cap pada 100 tahun. Konfigurasi ini memperoleh Macro F1 0,8676 pada validasi silang dan 0,87076 pada Kaggle public leaderboard. Model CART from-scratch dibandingkan dengan \texttt{DecisionTreeClassifier} dari scikit-learn menggunakan konfigurasi hyperparameter yang sama dan menghasilkan prediksi yang identik, mengonfirmasi kebenaran implementasi.
+Sebagai bonus eksplorasi, Bayesian Optimization (BO) diimplementasikan sebagai alternatif grid search untuk pencarian hyperparameter. BO memodelkan fungsi objektif $f(\theta)$ yang tidak diketahui, dalam hal ini Macro F1 sebagai fungsi dari $(\text{max\_depth}, \text{min\_samples\_leaf}, \text{min\_samples\_split})$, menggunakan Gaussian Process (GP) sebagai surrogate model. GP memberikan distribusi posterior dengan mean $\mu(\theta)$ dan varians $\sigma^2(\theta)$ untuk setiap titik kandidat berdasarkan observasi sebelumnya. Kernel yang digunakan adalah Radial Basis Function $k(\theta_i, \theta_j) = \exp(-\lVert\theta_i - \theta_j\rVert^2 / 2\ell^2)$ dengan length scale $\ell$ yang mengontrol smoothness fungsi. Akuisisi dilakukan menggunakan Expected Improvement
+\[
+    \text{EI}(\theta) = (\mu(\theta) - f^* - \xi)\,\Phi(Z) + \sigma(\theta)\,\phi(Z),
+    \quad Z = \frac{\mu(\theta) - f^* - \xi}{\sigma(\theta)}
+\]
+di mana $f^*$ adalah nilai terbaik yang telah diamati dan $\xi$ adalah parameter eksplorasi. BO dijalankan selama 25 iterasi dengan 5 sampel awal acak, hanya menggunakan 30 evaluasi total dibandingkan ribuan kombinasi pada grid search. Hasil BO menemukan konfigurasi \texttt{max\_depth=29}, \texttt{min\_samples\_leaf=12}, \texttt{min\_samples\_split=97} dengan skor validasi silang 0,8692 yang lebih tinggi dari konfigurasi grid search 0,8676. Namun ketika dievaluasi pada data uji, konfigurasi BO justru memberikan skor yang lebih rendah. Ini menegaskan, bahwa validasi silang lokal tidak selalu berkorelasi sempurna dengan performa pada data uji.
+
+Konfigurasi akhir yang digunakan adalah \texttt{max\_depth=19}, \texttt{min\_samples\_leaf=8}, dan \texttt{min\_samples\_split=100} dengan seluruh 11 fitur termasuk \texttt{person\_age} yang sudah di-cap pada 100 tahun. Konfigurasi ini memperoleh Macro F1 0,8676 pada validasi silang dan 0,87076 pada Kaggle public leaderboard. Model CART from-scratch dibandingkan dengan \texttt{DecisionTreeClassifier} dari scikit-learn menggunakan konfigurasi hyperparameter yang sama dan menghasilkan prediksi yang identik, mengonfirmasi kebenaran implementasi. Sebagai bonus, pohon keputusan divisualisasikan pada Gambar~\ref{fig:cart-tree} yang menampilkan empat level teratas dengan split condition, Gini impurity, jumlah sampel, dan distribusi kelas pada setiap simpul.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=\textwidth]{../../src/dtl_lr_svm/visualization/cart_tree.png}
+    \caption{Visualisasi empat level teratas pohon CART. Simpul internal (border biru) menampilkan fitur dan threshold split. Warna hijau menunjukkan mayoritas kelas 1 (disetujui) dan merah menunjukkan mayoritas kelas 0 (ditolak).}
+    \label{fig:cart-tree}
+\end{figure}
 
 % ==================== LOGISTIC REGRESSION ====================
 \section{Logistic Regression (LR)}
@@ -88,7 +103,14 @@ Logistic Regression diimplementasikan sebagai model linier dengan fungsi sigmoid
 
 Untuk menangani ketidakseimbangan kelas, diterapkan class weighting yang memberikan bobot lebih besar pada sampel kelas minoritas. Bobot dihitung secara otomatis berdasarkan proporsi kelas (\texttt{class\_weight="balanced"}) sehingga model tidak bias ke kelas mayoritas. Setelah pelatihan, dilakukan threshold optimization untuk mencari ambang batas probabilitas yang memaksimalkan Macro F1 pada data validasi, karena threshold default 0,5 cenderung suboptimal pada data tidak seimbang.
 
-Hasil Logistic Regression from-scratch memperoleh Macro F1 sekitar 0,83 pada validasi silang, dikonfirmasi konsisten dengan implementasi \texttt{LogisticRegression} dari scikit-learn. Skor ini jauh di bawah CART yang mencapai 0,87 pada validasi yang sama, menegaskan bahwa batas keputusan pada dataset ini bersifat non-linier dan model linier tidak mampu menangkap pola pemisahan antar kelas secara memadai.
+Hasil Logistic Regression from-scratch memperoleh Macro F1 sekitar 0,83 pada validasi silang, dikonfirmasi konsisten dengan implementasi \texttt{LogisticRegression} dari scikit-learn. Skor ini jauh di bawah CART yang mencapai 0,87 pada validasi yang sama, menegaskan bahwa batas keputusan pada dataset ini bersifat non-linier dan model linier tidak mampu menangkap pola pemisahan antar kelas secara memadai. Sebagai bonus, proses training divisualisasikan pada Gambar~\ref{fig:lr-training} yang menunjukkan kurva penurunan loss dan kontur loss pada dua dimensi bobot paling dominan beserta lintasan parameter selama optimasi.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=\textwidth]{../../src/dtl_lr_svm/visualization/lr_training.pdf}
+    \caption{Kiri: kurva penurunan Binary Cross-Entropy loss selama training dengan early stopping pada iterasi ke-675. Kanan: kontur loss pada dua dimensi bobot paling dominan (\texttt{loan\_percent\_income} dan \texttt{previous\_loan\_defaults\_on\_file}) beserta lintasan parameter dari inisialisasi (hijau) menuju konvergensi (merah).}
+    \label{fig:lr-training}
+\end{figure}
 
 % ==================== SVM ====================
 \section{Support Vector Machine (SVM)}
@@ -151,7 +173,8 @@ Regularisasi berbasis \texttt{min\_impurity\_decrease} juga layak dieksplorasi s
     \item L. Breiman, J. Friedman, R. Olshen, and C. Stone, \textit{Classification and Regression Trees}. Wadsworth, 1984.
     \item J. R. Quinlan, \textit{C4.5: Programs for Machine Learning}. Morgan Kaufmann, 1993.
     \item T. Hastie, R. Tibshirani, and J. Friedman, \textit{The Elements of Statistical Learning}, 2nd ed. Springer, 2009.
-    \item D. P. Kingma and J. Ba, ``Adam: A Method for Stochastic Optimization,'' in \textit{ICLR}, 2015.
+    \item J. Snoek, H. Larochelle, and R. P. Adams, ``Practical Bayesian Optimization of Machine Learning Algorithms,'' in \textit{NeurIPS}, 2012.
+    \item C. E. Rasmussen and C. K. I. Williams, \textit{Gaussian Processes for Machine Learning}. MIT Press, 2006.
     \item GeeksforGeeks, \textit{``Iterative Dichotomiser 3 (ID3) Algorithm From Scratch.''} \url{https://www.geeksforgeeks.org/iterative-dichotomiser-3-id3-algorithm-from-scratch/}
     \item GeeksforGeeks, \textit{``CART (Classification And Regression Tree) in Machine Learning.''} \url{https://www.geeksforgeeks.org/cart-classification-and-regression-tree-in-machine-learning/}
     \item GeeksforGeeks, \textit{``Understanding Logistic Regression.''} \url{https://www.geeksforgeeks.org/understanding-logistic-regression/}

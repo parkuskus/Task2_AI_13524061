@@ -2,7 +2,8 @@
 
 Best config: max_depth=19, min_samples_leaf=8, min_samples_split=100, all 11 features.
 person_age kept but capped at 100 (removes outliers age=144, 116).
-Previous: dropped person_age (noisy). Deep analysis showed age is useful when capped.
+Hyperparameter tuning via grid search. Bayesian Optimization also explored but
+found configs that overfit to cross-validation.
 """
 
 import csv, os, sys, numpy as np
@@ -79,7 +80,6 @@ def load_with_age_capped(dataset_dir):
     th, tr = load_csv(train_path)
     teh, ter = load_csv(test_path)
 
-    # Cap age at 100 (outliers: 116, 144)
     for row in tr:
         idx = th.index("person_age")
         row[idx] = str(np.clip(float(row[idx]), 0, 100))
@@ -104,7 +104,6 @@ def load_with_age_capped(dataset_dir):
             idx = teh.index(col)
             X_test[i, len(num_cols) + j] = float(cat_maps[col].get(row[idx], 0))
 
-    # Standardize
     mean = X_train.mean(axis=0)
     std = X_train.std(axis=0)
     std[std == 0] = 1.0
