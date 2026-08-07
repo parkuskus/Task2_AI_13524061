@@ -64,22 +64,9 @@ Institut Teknologi Bandung\\
 % ==================== PROBLEM OVERVIEW ====================
 \section{Problem Overview}
 
- [Deskripsi permasalahan \& dataset secara singkat.]
+Permasalahan yang diselesaikan adalah prediksi status persetujuan pinjaman (\texttt{loan\_status}) dengan dua kelas yaitu 0 untuk ditolak dan 1 untuk disetujui. Prediksi dilakukan berdasarkan data demografis, finansial, dan riwayat kredit masing-masing pemohon. Metrik evaluasi yang digunakan adalah \textbf{Macro F1-score} yang merupakan rata-rata F1-score kedua kelas tanpa memperhitungkan proporsi. Metrik ini dipilih karena distribusi kelas yang tidak seimbang sehingga model tidak bisa hanya mengandalkan prediksi kelas mayoritas.
 
-\subsection{Permasalahan}
-
-Tugas: memprediksi \texttt{loan\_status} (0 = ditolak, 1 = disetujui) untuk setiap pemohon berdasarkan data demografis, finansial, dan riwayat kredit. Metrik evaluasi: \textbf{Macro F1-score}.
-
-\subsection{Dataset}
-
-\begin{itemize}
-    \item \textbf{Train set}: 36.000 baris (28.000 label 0, 8.000 label 1) --- tidak seimbang
-    \item \textbf{Test set}: 9.000 baris tanpa label
-    \item \textbf{Fitur}: 12 kolom (numerik + kategorik), tanpa missing values
-    \item \textbf{Target}: \texttt{loan\_status} (hanya di train.csv)
-\end{itemize}
-
- [Tambahkan observasi penting EDA di sini jika relevan.]
+Dataset terdiri dari \texttt{train.csv} dengan 36.000 baris dan \texttt{test.csv} dengan 9.000 baris tanpa missing values. Dari 36.000 sampel latih, sekitar 28.000 berlabel ditolak dan 8.000 berlabel disetujui, menghasilkan rasio ketidakseimbangan sekitar 3,5 banding 1. Terdapat 8 fitur numerik yaitu \texttt{person\_age}, \texttt{person\_income}, \texttt{person\_emp\_exp}, \texttt{loan\_amnt}, \texttt{loan\_int\_rate}, \texttt{loan\_percent\_income}, \texttt{cb\_person\_cred\_hist\_length}, dan \texttt{credit\_score}, serta 3 fitur kategorik yaitu \texttt{person\_gender}, \texttt{person\_home\_ownership}, dan \texttt{previous\_loan\_defaults\_on\_file}. Kolom \texttt{person\_id} tidak digunakan dalam prediksi dan target \texttt{loan\_status} hanya tersedia pada data latih.
 
 % ==================== DTL ====================
 \section{Decision Tree Learning (DTL)}
@@ -88,15 +75,15 @@ Tugas: memprediksi \texttt{loan\_status} (0 = ditolak, 1 = disetujui) untuk seti
 
 \subsection{Pemilihan Varian}
 
- [Jelaskan varian yang dipilih dan alasan.]
+[Jelaskan varian yang dipilih dan alasan.]
 
 \subsection{Implementasi}
 
- [Deskripsikan implementasi from-scratch: kriteria splitting, penanganan fitur numerik/kategorik, stopping criteria, dsb.]
+[Deskripsikan implementasi from-scratch: kriteria splitting, penanganan fitur numerik/kategorik, stopping criteria, dsb.]
 
 \subsection{Perbandingan dengan scikit-learn}
 
- [Hasil model from-scratch vs sklearn.]
+[Hasil model from-scratch vs sklearn.]
 
 % ==================== LOGISTIC REGRESSION ====================
 \section{Logistic Regression (LR)}
@@ -105,11 +92,11 @@ Tugas: memprediksi \texttt{loan\_status} (0 = ditolak, 1 = disetujui) untuk seti
 
 \subsection{Implementasi}
 
- [Deskripsikan implementasi from-scratch: gradient descent, learning rate, regularisasi, dsb.]
+[Deskripsikan implementasi from-scratch: gradient descent, learning rate, regularisasi, dsb.]
 
 \subsection{Perbandingan dengan scikit-learn}
 
- [Hasil model from-scratch vs sklearn.]
+[Hasil model from-scratch vs sklearn.]
 
 % ==================== SVM ====================
 \section{Support Vector Machine (SVM)}
@@ -118,11 +105,11 @@ Tugas: memprediksi \texttt{loan\_status} (0 = ditolak, 1 = disetujui) untuk seti
 
 \subsection{Implementasi}
 
- [Deskripsikan implementasi from-scratch: kernel, optimasi, parameter, dsb.]
+[Deskripsikan implementasi from-scratch: kernel, optimasi, parameter, dsb.]
 
 \subsection{Perbandingan dengan scikit-learn}
 
- [Hasil model from-scratch vs sklearn.]
+[Hasil model from-scratch vs sklearn.]
 
 % ==================== VALIDATION STRATEGY ====================
 \section{Validation Strategy}
