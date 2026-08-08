@@ -93,7 +93,6 @@ Task2_AI_13524061/
 │       ├── utils/                    # loader, eda, compare
 │       ├── visualization/            # tree & LR contour plots
 │       └── main.py                   # CLI entry point
-├── extra/                            # supplementary docs & data
 ├── LICENSE
 └── README.md
 ```
