@@ -72,7 +72,7 @@ Dataset terdiri dari \texttt{train.csv} dengan 36.000 baris dan \texttt{test.csv
 % ==================== DTL ====================
 \section{Decision Tree Learning (DTL)}
 
-Dari tiga varian yang diperbolehkan yaitu ID3, C4.5, dan CART, varian CART dipilih karena menangani fitur numerik dan kategorik secara langsung melalui binary split dengan Gini impurity, tanpa memerlukan diskretisasi eksplisit seperti ID3 maupun perhitungan information gain ratio seperti C4.5. CART membangun pohon biner dengan memilih fitur dan threshold yang memaksimalkan penurunan Gini impurity pada setiap simpul. Implementasi dibangun dari awal hanya menggunakan \texttt{numpy}. Fitur kategorik diubah menjadi integer encoding lalu seluruh fitur distandardisasi dengan Z-score.
+Dari tiga varian yang diperbolehkan yaitu ID3 \cite{quinlan1986id3}, C4.5 \cite{quinlan1993c45}, dan CART \cite{breiman1984cart}, varian CART dipilih karena menangani fitur numerik dan kategorik secara langsung melalui binary split dengan Gini impurity, tanpa memerlukan diskretisasi eksplisit seperti ID3 maupun perhitungan information gain ratio seperti C4.5. CART membangun pohon biner dengan memilih fitur dan threshold yang memaksimalkan penurunan Gini impurity pada setiap simpul \cite{breiman1984cart,hastie2009esl}. Implementasi dibangun dari awal hanya menggunakan \texttt{numpy}. Fitur kategorik diubah menjadi integer encoding lalu seluruh fitur distandardisasi dengan Z-score.
 
 Eksperimen dimulai dari baseline sederhana dengan \texttt{max\_depth=10} dan \texttt{min\_samples\_leaf=5} yang hanya memperoleh Macro F1 sekitar 0,86 pada validasi silang. Observasi awal menunjukkan bahwa pohon yang lebih dalam memberikan hasil yang lebih baik karena dataset memiliki batas keputusan non-linier yang kompleks, sehingga kedalaman dinaikkan secara bertahap. Pada \texttt{max\_depth=19} dan \texttt{min\_samples\_leaf=7}, skor validasi silang meningkat ke sekitar 0,87, menandakan bahwa kedalaman yang lebih besar memungkinkan pohon menangkap lebih banyak interaksi antar fitur.
 
@@ -80,7 +80,7 @@ Langkah berikutnya adalah ablasi fitur untuk mengidentifikasi fitur yang memberi
 
 Eksperimen regularisasi kemudian mengeksplorasi penambahan \texttt{min\_samples\_split} sebagai stopping criterion ketiga, melengkapi \texttt{max\_depth} dan \texttt{min\_samples\_leaf} yang sudah ada. Parameter ini mencegah pemisahan pada simpul yang jumlah sampelnya di bawah threshold tertentu, berbeda dengan \texttt{min\_samples\_leaf} yang membatasi ukuran anak setelah pemisahan. Nilai \texttt{min\_samples\_split=100} ditemukan optimal melalui grid search pada validasi silang, memberikan peningkatan sekitar 0,001 dibandingkan tanpa parameter ini. Nilai yang lebih besar dari 200 justru menurunkan performa karena terlalu banyak membatasi pertumbuhan pohon.
 
-Sebagai bonus eksplorasi, Bayesian Optimization (BO) diimplementasikan sebagai alternatif grid search untuk pencarian hyperparameter. BO memodelkan fungsi objektif $f(\theta)$ yang tidak diketahui, dalam hal ini Macro F1 sebagai fungsi dari $(\text{max\_depth}, \text{min\_samples\_leaf}, \text{min\_samples\_split})$, menggunakan Gaussian Process (GP) sebagai surrogate model. GP memberikan distribusi posterior dengan mean $\mu(\theta)$ dan varians $\sigma^2(\theta)$ untuk setiap titik kandidat berdasarkan observasi sebelumnya. Kernel yang digunakan adalah Radial Basis Function $k(\theta_i, \theta_j) = \exp(-\lVert\theta_i - \theta_j\rVert^2 / 2\ell^2)$ dengan length scale $\ell$ yang mengontrol smoothness fungsi. Akuisisi dilakukan menggunakan Expected Improvement
+Sebagai bonus eksplorasi, Bayesian Optimization (BO) diimplementasikan sebagai alternatif grid search untuk pencarian hyperparameter. BO memodelkan fungsi objektif $f(\theta)$ yang tidak diketahui, dalam hal ini Macro F1 sebagai fungsi dari $(\text{max\_depth}, \text{min\_samples\_leaf}, \text{min\_samples\_split})$, menggunakan Gaussian Process (GP) sebagai surrogate model \cite{snoek2012bo,rasmussen2006gp}. GP memberikan distribusi posterior dengan mean $\mu(\theta)$ dan varians $\sigma^2(\theta)$ untuk setiap titik kandidat berdasarkan observasi sebelumnya. Kernel yang digunakan adalah Radial Basis Function $k(\theta_i, \theta_j) = \exp(-\lVert\theta_i - \theta_j\rVert^2 / 2\ell^2)$ dengan length scale $\ell$ yang mengontrol smoothness fungsi \cite{rasmussen2006gp}. Akuisisi dilakukan menggunakan Expected Improvement \cite{snoek2012bo}
 \[
     \text{EI}(\theta) = (\mu(\theta) - f^* - \xi)\,\Phi(Z) + \sigma(\theta)\,\phi(Z),
     \quad Z = \frac{\mu(\theta) - f^* - \xi}{\sigma(\theta)}
@@ -128,11 +128,11 @@ SVM from-scratch memperoleh Macro F1 sekitar 0,81 pada validasi silang, hasil ya
 % ==================== ADAM OPTIMIZER (BONUS) ====================
 \section{Algoritma Optimasi Adam}
 
-Baik Logistic Regression maupun SVM dilatih menggunakan algoritma Adam sebagai pengganti Stochastic Gradient Descent (SGD). Adam menggabungkan dua ide utama yaitu momentum melalui estimasi momen pertama $m_t = \beta_1 m_{t-1} + (1-\beta_1)\nabla f(\theta_t)$ dan adaptive learning rate melalui estimasi momen kedua $v_t = \beta_2 v_{t-1} + (1-\beta_2)(\nabla f(\theta_t))^2$. Parameter diperbarui dengan aturan $\theta_{t+1} = \theta_t - \alpha \cdot \hat{m}_t / (\sqrt{\hat{v}_t} + \epsilon)$ di mana $\hat{m}_t$ dan $\hat{v}_t$ adalah versi bias-corrected dari $m_t$ dan $v_t$.
+Baik Logistic Regression maupun SVM dilatih menggunakan algoritma Adam sebagai pengganti Stochastic Gradient Descent (SGD). Adam, yang diperkenalkan oleh Kingma dan Ba \cite{kingma2015adam}, menggabungkan dua ide utama yaitu momentum melalui estimasi momen pertama $m_t = \beta_1 m_{t-1} + (1-\beta_1)\nabla f(\theta_t)$ dan adaptive learning rate melalui estimasi momen kedua $v_t = \beta_2 v_{t-1} + (1-\beta_2)(\nabla f(\theta_t))^2$. Parameter diperbarui dengan aturan $\theta_{t+1} = \theta_t - \alpha \cdot \hat{m}_t / (\sqrt{\hat{v}_t} + \epsilon)$ di mana $\hat{m}_t$ dan $\hat{v}_t$ adalah versi bias-corrected dari $m_t$ dan $v_t$.
 
-Bias correction menjadi komponen penting yang membedakan Adam dari optimizer adaptif lain seperti RMSprop. Pada iterasi awal, estimasi $m_t$ dan $v_t$ cenderung bias menuju nol karena inisialisasi dari nol. Adam mengoreksi bias ini melalui $\hat{m}_t = m_t / (1-\beta_1^t)$ dan $\hat{v}_t = v_t / (1-\beta_2^t)$, memastikan learning rate yang efektif tidak terlalu besar di awal training.
+Bias correction menjadi komponen penting yang membedakan Adam dari optimizer adaptif lain seperti RMSprop \cite{kingma2015adam}. Pada iterasi awal, estimasi $m_t$ dan $v_t$ cenderung bias menuju nol karena inisialisasi dari nol. Adam mengoreksi bias ini melalui $\hat{m}_t = m_t / (1-\beta_1^t)$ dan $\hat{v}_t = v_t / (1-\beta_2^t)$, memastikan learning rate yang efektif tidak terlalu besar di awal training.
 
-Pada dataset ini, Adam dipilih karena dua alasan. Pertama, skala fitur yang sangat bervariasi menyebabkan beberapa parameter memiliki gradien dengan magnitudo jauh lebih besar dibanding yang lain, dan adaptive learning rate membantu menyeimbangkan langkah pembaruan di seluruh dimensi. Kedua, lanskap loss yang asimetris akibat regularisasi L2 dan class weighting menciptakan kelengkungan yang bervariasi, dan momentum membantu navigasi melewati daerah datar menuju minimum. Tanpa Adam, SGD standar memerlukan tuning learning rate yang jauh lebih sensitif dan jumlah iterasi yang lebih besar untuk mencapai konvergensi yang setara.
+Pada dataset ini, Adam dipilih karena dua alasan. Pertama, skala fitur yang sangat bervariasi menyebabkan beberapa parameter memiliki gradien dengan magnitudo jauh lebih besar dibanding yang lain, dan adaptive learning rate membantu menyeimbangkan langkah pembaruan di seluruh dimensi. Kedua, lanskap loss yang asimetris akibat regularisasi L2 dan class weighting menciptakan kelengkungan yang bervariasi, dan momentum membantu navigasi melewati daerah datar menuju minimum. Tanpa Adam, SGD standar memerlukan tuning learning rate yang jauh lebih sensitif dan jumlah iterasi yang lebih besar untuk mencapai konvergensi yang setara. Keunggulan Adam dalam menangani permasalahan non-convex dan noisy gradients telah didokumentasikan secara luas, termasuk oleh Ruder \cite{ruder2016overview} yang membandingkan berbagai varian gradient descent secara komprehensif.
 
 Visualisasi lintasan parameter pada kontur loss yang telah ditampilkan sebelumnya mengonfirmasi efektivitas Adam. Lintasan dari inisialisasi menuju konvergensi tidak lurus melainkan melengkung mengikuti kontur loss, dan Adam mampu menavigasi kelengkungan ini dalam 675 iterasi sebelum early stopping terpicu. Implementasi Adam from-scratch diverifikasi menghasilkan konvergensi yang identik dengan implementasi referensi pada library standar.
 
@@ -181,19 +181,44 @@ Dari sisi preprocessing, target encoding untuk fitur kategorik dapat menggantika
 
 Regularisasi berbasis \texttt{min\_impurity\_decrease} juga layak dieksplorasi sebagai stopping criterion tambahan. Parameter ini mencegah pemisahan yang tidak memberikan penurunan impurity yang signifikan, berbeda dengan \texttt{min\_samples\_split} yang hanya melihat ukuran simpul. Kombinasi keduanya dapat menghasilkan pohon yang lebih ramping tanpa mengorbankan akurasi.
 
-% ==================== REFERENSI ====================
-\section{Referensi}
+\begin{thebibliography}{99}
 
-\begin{enumerate}
-    \item L. Breiman, J. Friedman, R. Olshen, and C. Stone, \textit{Classification and Regression Trees}. Wadsworth, 1984.
-    \item J. R. Quinlan, \textit{C4.5: Programs for Machine Learning}. Morgan Kaufmann, 1993.
-    \item T. Hastie, R. Tibshirani, and J. Friedman, \textit{The Elements of Statistical Learning}, 2nd ed. Springer, 2009.
-    \item J. Snoek, H. Larochelle, and R. P. Adams, ``Practical Bayesian Optimization of Machine Learning Algorithms,'' in \textit{NeurIPS}, 2012.
-    \item C. E. Rasmussen and C. K. I. Williams, \textit{Gaussian Processes for Machine Learning}. MIT Press, 2006.
-    \item GeeksforGeeks, \textit{``Iterative Dichotomiser 3 (ID3) Algorithm From Scratch.''} \url{https://www.geeksforgeeks.org/iterative-dichotomiser-3-id3-algorithm-from-scratch/}
-    \item GeeksforGeeks, \textit{``CART (Classification And Regression Tree) in Machine Learning.''} \url{https://www.geeksforgeeks.org/cart-classification-and-regression-tree-in-machine-learning/}
-    \item GeeksforGeeks, \textit{``Understanding Logistic Regression.''} \url{https://www.geeksforgeeks.org/understanding-logistic-regression/}
-    \item GeeksforGeeks, \textit{``Support Vector Machine (SVM) Algorithm.''} \url{https://www.geeksforgeeks.org/support-vector-machine-algorithm/}
-\end{enumerate}
+    \bibitem{breiman1984cart}
+    L. Breiman, J. Friedman, R. Olshen, and C. Stone, \textit{Classification and Regression Trees}. Wadsworth, 1984.
+
+    \bibitem{quinlan1986id3}
+    J. R. Quinlan, ``Induction of Decision Trees,'' \textit{Machine Learning}, vol. 1, no. 1, pp. 81--106, 1986.
+
+    \bibitem{quinlan1993c45}
+    J. R. Quinlan, \textit{C4.5: Programs for Machine Learning}. Morgan Kaufmann, 1993.
+
+    \bibitem{hastie2009esl}
+    T. Hastie, R. Tibshirani, and J. Friedman, \textit{The Elements of Statistical Learning}, 2nd ed. Springer, 2009.
+
+    \bibitem{snoek2012bo}
+    J. Snoek, H. Larochelle, and R. P. Adams, ``Practical Bayesian Optimization of Machine Learning Algorithms,'' in \textit{NeurIPS}, 2012.
+
+    \bibitem{rasmussen2006gp}
+    C. E. Rasmussen and C. K. I. Williams, \textit{Gaussian Processes for Machine Learning}. MIT Press, 2006.
+
+    \bibitem{kingma2015adam}
+    D. P. Kingma and J. Ba, ``Adam: A Method for Stochastic Optimization,'' in \textit{ICLR}, 2015.
+
+    \bibitem{ruder2016overview}
+    S. Ruder, ``An Overview of Gradient Descent Optimization Algorithms,'' \textit{arXiv preprint arXiv:1609.04747}, 2016.
+
+    \bibitem{geeksforgeeks-id3}
+    GeeksforGeeks, ``Iterative Dichotomiser 3 (ID3) Algorithm From Scratch.'' \url{https://www.geeksforgeeks.org/iterative-dichotomiser-3-id3-algorithm-from-scratch/}
+
+    \bibitem{geeksforgeeks-cart}
+    GeeksforGeeks, ``CART (Classification And Regression Tree) in Machine Learning.'' \url{https://www.geeksforgeeks.org/cart-classification-and-regression-tree-in-machine-learning/}
+
+    \bibitem{geeksforgeeks-logreg}
+    GeeksforGeeks, ``Understanding Logistic Regression.'' \url{https://www.geeksforgeeks.org/understanding-logistic-regression/}
+
+    \bibitem{geeksforgeeks-svm}
+    GeeksforGeeks, ``Support Vector Machine (SVM) Algorithm.'' \url{https://www.geeksforgeeks.org/support-vector-machine-algorithm/}
+
+\end{thebibliography}
 
 \end{document}
