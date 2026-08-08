@@ -1,14 +1,9 @@
-"""CART Decision Tree — from scratch, numpy only.
+import csv
+import os
+import sys
+import numpy as np
 
-Best config: max_depth=19, min_samples_leaf=8, min_samples_split=100, all 11 features.
-person_age kept but capped at 100 (removes outliers age=144, 116).
-Hyperparameter tuning via grid search. Bayesian Optimization also explored but
-found configs that overfit to cross-validation.
-"""
-
-import csv, os, sys, numpy as np
-
-sys.path.insert(0, os.path.dirname(__file__))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 
 class Node:
@@ -71,7 +66,6 @@ class CART:
 
 
 def load_with_age_capped(dataset_dir):
-    """Load dataset with person_age capped at 100 to remove outliers."""
     from utils.loader import load_csv, build_feature_matrix
 
     train_path = os.path.join(dataset_dir, "train.csv")
@@ -114,7 +108,7 @@ def load_with_age_capped(dataset_dir):
 
 
 if __name__ == "__main__":
-    base = os.path.join(os.path.dirname(__file__), "..", "..", "dataset")
+    base = os.path.join(os.path.dirname(__file__), "..", "..", "..", "dataset")
     X, y, X_test, feat_names = load_with_age_capped(base)
     print(f"Features ({len(feat_names)}): {feat_names}")
 
@@ -128,7 +122,8 @@ if __name__ == "__main__":
     print(f"CART d=19 l=8 min_split=100 (age capped): train_acc={acc:.4f}")
 
     test_preds = model.predict(X_test)
-    out = os.path.join(os.path.dirname(__file__), "..", "..", "extra", "submission_cart.csv")
+    out = os.path.join(os.path.dirname(__file__), "..", "..", "..", "submissions", "submission_cart_best.csv")
+    os.makedirs(os.path.dirname(out), exist_ok=True)
     with open(out, "w", newline="") as f:
         w = csv.writer(f)
         w.writerow(["person_id", "loan_status"])

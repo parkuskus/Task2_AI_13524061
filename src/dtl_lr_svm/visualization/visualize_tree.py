@@ -1,12 +1,10 @@
-"""CART Decision Tree Visualization — bonus DTL (3).
-
-Renders the tree structure with matplotlib: split conditions, Gini, samples, class distribution.
-Saves as PDF and PNG in visualization/ folder.
-"""
-import os, sys, csv, numpy as np
+import os
+import sys
+import csv
+import numpy as np
 import matplotlib.pyplot as plt
 
-sys.path.insert(0, os.path.dirname(__file__))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 from utils.loader import load_csv, build_feature_matrix
 
 class Node:
@@ -77,7 +75,6 @@ def draw_tree(node, ax, x, y, dx, dy, feature_names, max_depth=4, depth=0):
                       edgecolor=edge, linewidth=1.8))
 
     xl = x - dx; xr = x + dx; y_child = y - dy
-    # Lines drawn behind boxes — extend enough to be hidden by bbox
     ax.plot([x, xl], [y-0.35, y_child+0.35], '-', color='#555555', lw=1.5, alpha=0.8, zorder=0)
     ax.plot([x, xr], [y-0.35, y_child+0.35], '-', color='#555555', lw=1.5, alpha=0.8, zorder=0)
 
@@ -86,7 +83,7 @@ def draw_tree(node, ax, x, y, dx, dy, feature_names, max_depth=4, depth=0):
 
 
 if __name__ == "__main__":
-    base_dir = os.path.join(os.path.dirname(__file__), "..", "..", "dataset")
+    base_dir = os.path.join(os.path.dirname(__file__), "..", "..", "..", "dataset")
     cat_cols = ["person_gender", "person_home_ownership", "previous_loan_defaults_on_file"]
 
     th, tr = load_csv(os.path.join(base_dir, "train.csv"))
@@ -109,7 +106,7 @@ if __name__ == "__main__":
                  "Blue border = internal node | Color = majority class (red=reject, green=approve)",
                  fontsize=12, family='monospace', pad=15)
 
-    viz_dir = os.path.join(os.path.dirname(__file__), "visualization")
+    viz_dir = os.path.join(os.path.dirname(__file__), "")
     os.makedirs(viz_dir, exist_ok=True)
 
     for ext in ["pdf", "png"]:

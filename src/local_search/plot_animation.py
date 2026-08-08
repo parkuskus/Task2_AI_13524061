@@ -1,14 +1,3 @@
-"""Bonus #2: Animasi proses pencarian Local Search.
-
-Usage:
-    python plot_animation.py --algo SA           # default: SA, 200 iter
-    python plot_animation.py --algo HC --variant steepest_ascent
-    python plot_animation.py --algo GA --max-iter 300
-
-Output:
-    visualization/animation_<algo>.gif
-"""
-
 import sys
 import os
 
@@ -159,7 +148,7 @@ def main():
                 sys.exit(1)
             max_iter = int(args[i])
         elif args[i] in ("-h", "--help"):
-            print(__doc__)
+            print("Usage: python plot_animation.py --algo <HC|SA|GA> [--variant <variant>] [--max-iter N]")
             sys.exit(0)
         else:
             print(f"Unknown: {args[i]}")

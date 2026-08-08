@@ -1,15 +1,3 @@
-"""GUI Interaktif Visualisasi Local Search (Bonus #2 Spec).
-
-Fitur:
-  1. Grafik konvergensi J(s) vs iterasi
-  2. Visualisasi state (r_t vs quarter) animasi real-time
-  3. Panel status constraint (hijau = PASS, merah = FAIL)
-  4. Kontrol hyperparameter interaktif (slider + nilai real-time)
-
-Usage:
-    python gui_app.py
-"""
-
 import sys
 import os
 import threading
@@ -61,8 +49,6 @@ class LocalSearchGUI:
 
         self._build_ui()
         self.root.mainloop()
-
-    # ---- UI Construction ----
 
     def _build_ui(self):
         self.root.columnconfigure(0, weight=1, minsize=260)
@@ -248,8 +234,6 @@ class LocalSearchGUI:
             self.constraint_labels[cid] = lbl
         self._set_constraint_status("unknown")
 
-    # ---- Plot initialisation ----
-
     def _setup_conv_plot(self):
         self.ax_conv.clear()
         self.ax_conv.set_title("Convergence: J(s) vs Iteration", fontsize=10)
@@ -279,8 +263,6 @@ class LocalSearchGUI:
         self.ax_state.legend(fontsize=7, loc="lower left")
         self._state_line, = self.ax_state.plot([], [], "o-", color="#1f77b4", linewidth=2, markersize=6)
 
-    # ---- Constraint status ----
-
     def _set_constraint_status(self, status):
         colors = {"pass": "#27ae60", "fail": "#e74c3c", "soft_ok": "#27ae60",
                   "soft_viol": "#e67e22", "unknown": "#bdc3c7"}
@@ -304,8 +286,6 @@ class LocalSearchGUI:
         cons = check_constraints(state, traj, self.params)
         self._set_constraint_status({"C1": cons["C1"], "C2": cons["C2"],
                                      "C3": cons["C3"], "C4": cons["C4"], "C5": cons["C5"]})
-
-    # ---- Algorithm dispatch ----
 
     def _on_algo_change(self, event=None):
         algo = self.algo_var.get()
@@ -336,8 +316,6 @@ class LocalSearchGUI:
         p["w_pp"] = self._get_hp_value("w_pp")
         p["w_r"] = self._get_hp_value("w_r")
         return p
-
-    # ---- Search execution ----
 
     def _start_search(self):
         if self.running:
@@ -455,12 +433,10 @@ class LocalSearchGUI:
                  "Simulated Annealing": "#ff7f0e",
                  "Genetic Algorithm": "#2ca02c"}.get(self.algo_var.get(), "#1f77b4")
 
-        # State trajectory (lightweight: just set_data)
         self._state_line.set_data(self.quarters, state)
         self._state_line.set_color(color)
         self.ax_state.set_title(f"State Trajectory (iter {current_iter})", fontsize=10)
 
-        # Convergence curve (decimated)
         if self._stored_scores:
             xs, ys = zip(*self._stored_scores)
             n = len(xs)
@@ -486,7 +462,7 @@ class LocalSearchGUI:
         self.running = False
         self.root.quit()
         self.root.destroy()
-        os._exit(0)
+        sys.exit(0)
 
 
 if __name__ == "__main__":

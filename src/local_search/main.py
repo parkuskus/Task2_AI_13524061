@@ -27,7 +27,6 @@ def print_usage():
 
 
 def _print_constraints(cons, params):
-    """Print per-constraint status with hard/soft distinction."""
     print("Constraints:")
     for cid in ["C1", "C2", "C3", "C4"]:
         label = HARD_LABELS.get(cid, cid)
@@ -40,7 +39,6 @@ def _print_constraints(cons, params):
 
 
 def _print_feasible(cons, params):
-    """Print feasible conclusion with explanation."""
     if cons["feasible"]:
         print("Feasible   : YES -- seluruh hard constraint (C1-C4) terpenuhi.")
     else:

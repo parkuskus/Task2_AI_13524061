@@ -1,11 +1,9 @@
-"""EDA: Explorasi distribusi dataset Loan Acceptance Prediction."""
-
 import os
 import sys
 import numpy as np
 import csv
 
-sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 from utils.loader import load_dataset
 
 
@@ -38,7 +36,6 @@ def main():
     print(f"  Imbalance ratio: {counts[0]/counts[1]:.1f}:1")
 
     print_section("FEATURE STATISTICS (Train, raw scale)")
-    # Load raw data for stats (before standardization)
     raw_path = os.path.join(base, "train.csv")
     with open(raw_path, "r") as f:
         reader = csv.reader(f)

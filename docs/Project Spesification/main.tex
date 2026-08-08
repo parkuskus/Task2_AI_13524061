@@ -1,19 +1,16 @@
 \documentclass[10pt,a4paper]{report}
 
-% ---------- Paket dasar ----------
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
 \usepackage[indonesian]{babel}
 \usepackage{lipsum}
 
-% ---------- Paket matematika & gambar ----------
 \usepackage{amsmath,amssymb}
 \usepackage{graphicx}
 \usepackage{caption}
 \usepackage{subcaption}
 \usepackage{float}
 \bibliographystyle{IEEEtran}
-% ---------- Paket lain ----------
 \usepackage[most]{tcolorbox}
 \tcbuselibrary{listings}
 \usepackage{listings}
@@ -32,36 +29,31 @@
 
 \usepackage{titlesec}
 \usepackage{longtable}
-\usepackage{array} % untuk menentukan lebar kolom
-\usepackage{booktabs} % gaya tabel lebih elegan
+\usepackage{array}
+\usepackage{booktabs}
 \usepackage[table]{xcolor}
 \usepackage{tocloft}
 \setlength{\cftbeforechapskip}{4pt}
 \setlength{\cftbeforesecskip}{1pt}
 
-% ---------- Paket TikZ untuk diagram ----------
 \usepackage{tikz}
 \usetikzlibrary{shapes.geometric, arrows.meta, positioning, fit, calc, backgrounds}
 
 
 
-% Tambah jarak aman dari header dan footer:	
-\setlength{\headheight}{20pt}   % wajib cukup besar untuk fancyhdr
-\setlength{\headsep}{30pt}      % jarak header ke teks
-\setlength{\footskip}{20pt}     % jarak teks ke footer
+\setlength{\headheight}{20pt}
+\setlength{\headsep}{30pt}
+\setlength{\footskip}{20pt}
 \usepackage[a4paper,top=2.5cm,bottom=2cm,left=2cm,right=2cm]{geometry}
 
 \setlength{\parindent}{0pt}
 \setlength{\parskip}{6pt}
 
-% Semua gambar dari folder public dan subfoldernya
 \graphicspath{{public/}{public/01-pendahuluan/}{public/02-dasar-teori/}{public/03-implementasi/}}
 
-% --- Pengaturan header & footer ---
 \pagestyle{fancy}
-\fancyhf{} % clear all
+\fancyhf{}
 
-% --- Paksa semua halaman (termasuk awal chapter) memakai fancy ---
 \fancypagestyle{plain}{%
 	\fancyhf{}%
 	\fancyhead[L]{%
@@ -109,7 +101,6 @@
 	\thispagestyle{empty}
 	\centering
 
-	% ---------- Judul utama ----------
 	{\huge \textbf{Tugas Besar 1}\par}
 	\vspace{0.1cm}
 	{\huge \textbf{Optimasi Kebijakan Suku Bunga Bank Indonesia berbasis \textit{Local Search}}\par}
@@ -118,17 +109,14 @@
 	\vspace{0.1cm}
 	{\Large Semester 1 Tahun 2027/2028\par}
 
-	% ---------- Gambar tengah ----------
 	\vspace{0.6cm}
 	\includegraphics[width=0.50\textwidth]{cover.png}\par
 
-	% ---------- Disusun oleh ----------
 	\vspace{0.6cm}
 	{\large\bfseries Disusun oleh:\par}
 	\vspace{0.1cm}
 	\textbf{Muhammad Aufar Rizqi Kusuma (13524061)}
 
-	% ---------- Institusi ----------
 	\vspace{2.3cm}
 	\large Laboratorium Intelegensi Buatan\par
 	Program Studi Teknik Informatika\par

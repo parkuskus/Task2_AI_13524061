@@ -1,11 +1,9 @@
-"""LR Training Visualization — bonus DTL/LR/SVM (4).
-
-Loss curve over iterations + 2D loss contour with parameter trajectory.
-"""
-import os, sys, numpy as np
+import os
+import sys
+import numpy as np
 import matplotlib.pyplot as plt
 
-sys.path.insert(0, os.path.dirname(__file__))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 from utils.loader import load_csv, build_feature_matrix
 from models.logreg import LogisticRegressionScratch
 
@@ -22,7 +20,7 @@ def compute_loss(X, y, w, b, lambda_l2, sw):
 
 
 if __name__ == "__main__":
-    base_dir = os.path.join(os.path.dirname(__file__), "..", "..", "dataset")
+    base_dir = os.path.join(os.path.dirname(__file__), "..", "..", "..", "dataset")
     cat_cols = ["person_gender", "person_home_ownership", "previous_loan_defaults_on_file"]
 
     th, tr = load_csv(os.path.join(base_dir, "train.csv"))
@@ -33,7 +31,6 @@ if __name__ == "__main__":
     m = X.mean(0); s = X.std(0); s[s == 0] = 1.0
     X = (X - m) / s
 
-    # ── Train with weight tracking ─
     rng = np.random.RandomState(42)
     idx = np.arange(len(y)); rng.shuffle(idx)
     sp = int(0.85 * len(y))
@@ -80,7 +77,6 @@ if __name__ == "__main__":
     n_iters = len(loss_hist)
     print(f"Trained {n_iters} iterations, final loss={loss_hist[-1]:.4f}")
 
-    # ── Figure 1: Loss curve ──
     fig, axes = plt.subplots(1, 2, figsize=(16, 6))
 
     ax = axes[0]
@@ -91,12 +87,10 @@ if __name__ == "__main__":
     ax.set_yscale('log')
     ax.grid(True, alpha=0.3)
 
-    # ── Figure 2: 2D loss contour + trajectory ──
     w_final = weight_hist[-1]
     top2 = np.argsort(np.abs(w_final))[-2:]
 
     ax = axes[1]
-    # Tighter range around the trajectory
     traj = np.array(weight_hist)
     w1_min, w1_max = traj[:, top2[0]].min() - 0.5, traj[:, top2[0]].max() + 0.5
     w2_min, w2_max = traj[:, top2[1]].min() - 0.5, traj[:, top2[1]].max() + 0.5
@@ -117,7 +111,6 @@ if __name__ == "__main__":
     cf = ax.contourf(W1, W2, Z, levels=30, cmap='YlOrRd', alpha=0.9, extend='both')
     ax.contour(W1, W2, Z, levels=15, colors='white', linewidths=0.4, alpha=0.5)
 
-    # Trajectory
     ax.plot(traj[:, top2[0]], traj[:, top2[1]], 'b-', lw=1.5, alpha=0.8)
     ax.plot(traj[0, top2[0]], traj[0, top2[1]], 'go', ms=8, label='Start', markeredgecolor='white', markeredgewidth=1.5)
     ax.plot(traj[-1, top2[0]], traj[-1, top2[1]], 'r*', ms=12, label='Converged', markeredgecolor='white', markeredgewidth=1.5)
@@ -125,13 +118,13 @@ if __name__ == "__main__":
     feats_short = [fn[i].replace("_", "\n") for i in top2]
     ax.set_xlabel(feats_short[0], fontsize=11)
     ax.set_ylabel(feats_short[1], fontsize=11)
-    ax.set_title(f"Loss Contour & Parameter Trajectory", fontsize=12, fontweight='bold')
+    ax.set_title("Loss Contour & Parameter Trajectory", fontsize=12, fontweight='bold')
     ax.legend(fontsize=10, loc='upper right')
     cbar = plt.colorbar(cf, ax=ax, label='log(loss)', shrink=0.85)
     cbar.ax.tick_params(labelsize=9)
 
     plt.tight_layout()
-    viz_dir = os.path.join(os.path.dirname(__file__), "visualization")
+    viz_dir = os.path.join(os.path.dirname(__file__), "")
     os.makedirs(viz_dir, exist_ok=True)
     for ext in ["pdf", "png"]:
         out = os.path.join(viz_dir, f"lr_training.{ext}")

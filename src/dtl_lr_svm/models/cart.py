@@ -1,9 +1,3 @@
-"""CART Decision Tree implemented from scratch (numpy only).
-
-Binary splits, Gini/Twoing criterion, weighted Gini, cost-complexity pruning
-with Macro F1 cost, min_samples_leaf per-class, threshold optimization.
-"""
-
 import numpy as np
 
 
@@ -68,7 +62,6 @@ def find_optimal_threshold(y_true, probas, search_range=None, n_steps=100):
 
 
 def twoing_split_score(y_left, y_right, n_total):
-    """Twoing criterion for binary classification: PL * PR * |p(0|L) - p(0|R)|^2."""
     n_L, n_R = len(y_left), len(y_right)
     if n_L == 0 or n_R == 0:
         return 0.0
@@ -130,7 +123,6 @@ def best_split(X, y, sample_weights=None, min_impurity_decrease=0.0,
             if n_L == 0 or n_R == 0:
                 continue
 
-            # Per-class leaf check: ensure both children have enough class-1 samples
             if min_leaf_class_1 > 0:
                 c1_left = np.sum(y[left_mask] == 1)
                 c1_right = np.sum(y[right_mask] == 1)
@@ -175,7 +167,6 @@ def build_tree(X, y, sample_weights=None, depth=0, max_depth=None,
         return Node(value=class_counts, n_samples=n_samples, impurity=impurity)
     if n_samples < min_samples_split:
         return Node(value=class_counts, n_samples=n_samples, impurity=impurity)
-    # Leaf if minority count already too small
     if min_leaf_class_1 > 0 and class_counts[1] < min_leaf_class_1 * 2:
         return Node(value=class_counts, n_samples=n_samples, impurity=impurity)
 
@@ -192,7 +183,6 @@ def build_tree(X, y, sample_weights=None, depth=0, max_depth=None,
     if n_L < min_samples_leaf or n_R < min_samples_leaf:
         return Node(value=class_counts, n_samples=n_samples, impurity=impurity)
 
-    # Final per-class check on resulting children
     if min_leaf_class_1 > 0:
         c1_left = np.sum(y[left_mask] == 1)
         c1_right = np.sum(y[right_mask] == 1)
@@ -230,10 +220,7 @@ def count_leaves(node):
     return count_leaves(node.left) + count_leaves(node.right)
 
 
-# ---------- Macro F1-based pruning ----------
-
 def _node_per_class_errors(node):
-    """Return per-class errors if this node were a leaf (majority vote)."""
     total = node.value.sum()
     if total == 0:
         return np.array([0, 0])
@@ -247,7 +234,6 @@ def _node_per_class_errors(node):
 
 
 def _node_balanced_error(node, total_per_class):
-    """Balanced error: average per-class error rate (Macro F1 style)."""
     errors = _node_per_class_errors(node)
     balanced = 0.0
     for c in [0, 1]:
@@ -257,7 +243,6 @@ def _node_balanced_error(node, total_per_class):
 
 
 def _subtree_per_class_errors(node):
-    """Total per-class errors across all leaves in this subtree."""
     if node.is_leaf():
         return _node_per_class_errors(node)
     left_errors = _subtree_per_class_errors(node.left)
@@ -266,7 +251,6 @@ def _subtree_per_class_errors(node):
 
 
 def _subtree_balanced_error(node, total_per_class):
-    """Balanced error for the full subtree."""
     errors = _subtree_per_class_errors(node)
     balanced = 0.0
     for c in [0, 1]:
@@ -276,7 +260,6 @@ def _subtree_balanced_error(node, total_per_class):
 
 
 def _prune_node_f1(node, total_per_class, ccp_alpha):
-    """Bottom-up cost-complexity pruning with Macro F1-based cost."""
     if node.is_leaf():
         return node
 
@@ -335,8 +318,6 @@ class CARTDecisionTree:
         return counts.astype(np.float64)
 
     def _setup_rules(self):
-        # binary rule features as extra columns — tree decides via Gini
-        # Each rule: (feat_a, op_a, feat_b, op_b)
         self._rule_defs = [
             (10, lambda v: v < 0.0, 5, lambda v: v > -0.5),
             (10, lambda v: v < 0.0, 4, lambda v: v > 0.0),
@@ -376,8 +357,7 @@ class CARTDecisionTree:
                 total_pc = self._total_per_class(y)
                 self.tree = _prune_node_f1(self.tree, total_pc, self.ccp_alpha)
             else:
-                # Fallback: standard misclassification-rate pruning
-                self.tree = _prune_node_std(self.tree, X, y, self.ccp_alpha)  # noqa: F821  
+                self.tree = _prune_node_std(self.tree, X, y, self.ccp_alpha)
 
         return self
 
@@ -433,9 +413,7 @@ class CARTDecisionTree:
         return np.mean(self.predict(X) == y)
 
 
-# Keep old standard pruning as reference for compatibility
 def _prune_node_std(node, X, y, ccp_alpha):
-    """Standard CCP pruning with misclassification rate."""
     if node.is_leaf():
         return node
     node.left = _prune_node_std(node.left, X, y, ccp_alpha)
@@ -465,7 +443,7 @@ def _std_subtree_errors(node):
 if __name__ == "__main__":
     import os
     import sys
-    sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
+    sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
     from utils.loader import load_dataset
 
     base = os.path.join(os.path.dirname(__file__), "..", "..", "..", "dataset")
@@ -475,4 +453,4 @@ if __name__ == "__main__":
     model = CARTDecisionTree(max_depth=10, min_samples_leaf=5, random_seed=42)
     model.fit(X, y)
     opt_t, f1 = model.optimize_threshold(X, y)
-    print(f"Baseline CART — opt_threshold={opt_t:.3f}, train_F1={f1:.4f}")
+    print(f"Baseline CART - opt_threshold={opt_t:.3f}, train_F1={f1:.4f}")

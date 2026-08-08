@@ -1,9 +1,3 @@
-"""Logistic Regression from scratch (numpy only).
-
-Binary classification with sigmoid + class-weighted BCE + L2 regularization + Adam.
-Threshold optimization for imbalanced Macro F1.
-"""
-
 import numpy as np
 
 
@@ -150,7 +144,7 @@ class LogisticRegressionScratch:
 if __name__ == "__main__":
     import os
     import sys
-    sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
+    sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
     from utils.loader import load_dataset
 
     base = os.path.join(os.path.dirname(__file__), "..", "..", "..", "dataset")

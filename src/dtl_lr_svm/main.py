@@ -1,8 +1,3 @@
-"""Main runner: trains baseline CART, Logistic Regression, and SVM.
-
-Submits predictions for all three models to submissions/.
-"""
-
 import os
 import csv
 import sys
@@ -98,16 +93,16 @@ def main():
     results = []
     results.append(run_model("CART",
                              CARTDecisionTree(max_depth=10, min_samples_leaf=5,
-                                              random_seed=42),
+                                               random_seed=42),
                              X_tr, y_tr, X_test, test_ids, out_dir, X_val, y_val))
     results.append(run_model("Logistic Regression",
                              LogisticRegressionScratch(learning_rate=0.01, n_iterations=5000,
-                                                       lambda_l2=0.01, class_weight="balanced",
-                                                       optimizer="adam"),
+                                                        lambda_l2=0.01, class_weight="balanced",
+                                                        optimizer="adam"),
                              X_tr, y_tr, X_test, test_ids, out_dir, X_val, y_val))
     results.append(run_model("SVM",
                              LinearSVMScratch(C=1.0, learning_rate=0.01, n_iterations=5000,
-                                              class_weight="balanced", optimizer="adam"),
+                                               class_weight="balanced", optimizer="adam"),
                              X_tr, y_tr, X_test, test_ids, out_dir, X_val, y_val))
 
     print(f"\n  {'Model':<22} {'Accuracy':>10} {'Macro F1':>10}")

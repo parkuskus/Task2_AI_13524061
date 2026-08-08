@@ -1,9 +1,10 @@
-"""Bayesian Optimization for CART hyperparameter tuning (from scratch, numpy only).
-Gaussian Process surrogate + Expected Improvement acquisition.
-"""
-import os, sys, csv, numpy as np
+import os
+import csv
+import sys
+import numpy as np
 
-sys.path.insert(0, os.path.dirname(__file__))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
+
 from utils.loader import load_csv, build_feature_matrix
 
 
@@ -67,8 +68,6 @@ def macro_f1(y_true, y_pred):
     return sum(f1s) / len(f1s)
 
 
-# ── Gaussian Process ──
-
 def rbf_kernel(X1, X2, length_scale=1.0, variance=1.0):
     sqdist = np.sum(X1**2, axis=1).reshape(-1, 1) + np.sum(X2**2, axis=1) - 2 * np.dot(X1, X2.T)
     return variance * np.exp(-0.5 * sqdist / length_scale**2)
@@ -87,14 +86,13 @@ def gp_posterior(X_train, y_train, X_test, length_scale=1.0, variance=1.0, noise
 def expected_improvement(mu, sigma, y_best, xi=0.01):
     with np.errstate(divide='ignore'):
         z = (mu - y_best - xi) / np.sqrt(sigma)
-        ei = (mu - y_best - xi) * 0.5 * (1 + np.sign(z))  # approximate CDF
+        ei = (mu - y_best - xi) * 0.5 * (1 + np.sign(z))
         ei += np.sqrt(sigma) * np.exp(-z**2 / 2) / np.sqrt(2 * np.pi)
         ei[sigma < 1e-10] = 0.0
     return ei
 
 
 def cv_score(d, l, sp, X, y, n_folds=3):
-    """3-fold stratified CV Macro F1 for speed."""
     rng = np.random.RandomState(42)
     idx = np.arange(len(y)); rng.shuffle(idx)
     fs = len(y) // n_folds; scores = []
@@ -108,7 +106,7 @@ def cv_score(d, l, sp, X, y, n_folds=3):
 
 
 if __name__ == "__main__":
-    base_dir = os.path.join(os.path.dirname(__file__), "..", "..", "dataset")
+    base_dir = os.path.join(os.path.dirname(__file__), "..", "..", "..", "dataset")
     t_path = os.path.join(base_dir, "train.csv")
     cat_cols = ["person_gender", "person_home_ownership", "previous_loan_defaults_on_file"]
 
@@ -121,30 +119,26 @@ if __name__ == "__main__":
     mean = X.mean(axis=0); std = X.std(axis=0); std[std == 0] = 1.0
     X = (X - mean) / std
 
-    # Search space (log-scale for min_split)
-    bounds = np.array([[5, 30], [2, 20], [1.7, 3.0]])  # depth, leaf, log10(split)
+    bounds = np.array([[5, 30], [2, 20], [1.7, 3.0]])
 
     n_init = 5
     n_iter = 20
     rng = np.random.RandomState(42)
 
-    # Initial random samples
     X_init = rng.uniform(0, 1, (n_init, 3))
     X_params = bounds[:, 0] + X_init * (bounds[:, 1] - bounds[:, 0])
     y_obs = np.array([cv_score(X_params[i, 0], X_params[i, 1], 10**X_params[i, 2], X, y)
                       for i in range(n_init)])
 
-    X_norm = X_init  # normalized to [0,1]
+    X_norm = X_init
     best_idx = np.argmax(y_obs)
     best_f1 = y_obs[best_idx]
     best_params = X_params[best_idx]
 
     print(f"Init best: d={int(best_params[0])} l={int(best_params[1])} sp={int(10**best_params[2])} F1={best_f1:.4f}")
 
-    # BO iterations
     for i in range(n_iter):
         mu, sigma = gp_posterior(X_norm, y_obs, X_norm)
-        # Generate candidates for acquisition optimization
         n_cand = 1000
         X_cand = rng.uniform(0, 1, (n_cand, 3))
         mu_cand, sigma_cand = gp_posterior(X_norm, y_obs, X_cand)
@@ -166,9 +160,7 @@ if __name__ == "__main__":
     print(f"\n=== Bayesian Optimization Result ===")
     print(f"Best: d={int(best_params[0])} l={int(best_params[1])} sp={int(10**best_params[2])} F1={best_f1:.4f}")
     print(f"Total evaluations: {n_init + n_iter}")
-    print(f"Grid search equivalent: ~{len(range(5,31)) * len(range(2,21)) * len([2,10,50,100,200,500])} combos")
 
-    # Compare with our best known config
     known_best_f1 = cv_score(19, 8, 100, X, y)
     print(f"Known best (d=19, l=8, sp=100): {known_best_f1:.4f}")
     print(f"BO improvement: {best_f1 - known_best_f1:+.4f}")

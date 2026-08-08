@@ -8,30 +8,20 @@ def check_constraints(s, trajectory, params=None):
     p = params
     T = len(s)
 
-    # --- HARD constraints (C1-C4): must all pass to be feasible ---
-
-    # C1: batas dan diskritisasi suku bunga
     c1_ok = all(p["r_min"] <= rt <= p["r_max"] and rt % 0.25 == 0 for rt in s)
 
-    # C2: batas defisit transaksi berjalan (CA/PDP >= -theta)
     CA = trajectory["CA"]
     c2_ok = all(ca >= -p["theta"] for ca in CA)
     violation_2 = max(0.0, max(-p["theta"] - ca for ca in CA))
 
-    # C3: batas spread imbal hasil SBN terhadap BI-Rate
     sbn = trajectory["sbn"]
     c3_ok = all(sbn[t] - s[t] <= p["sigma_max"] for t in range(T))
     violation_3 = max(0.0, max((sbn[t] - s[t]) - p["sigma_max"] for t in range(T)))
 
-    # C4: konvergensi inflasi di akhir horizon
     pi_T = trajectory["pi"][-1]
     c4_ok = abs(pi_T - p["pi_star"]) <= 1.0
     violation_4 = max(0.0, abs(pi_T - p["pi_star"]) - 1.0)
 
-    # --- SOFT constraint (C5): penalized, not required for feasibility ---
-    # C5: gradualisme kebijakan (interest rate smoothing)
-    #     BOLEH lompat >50 bps, tapi BAYAR penalty kuadratik di objective function.
-    #     Mencerminkan realitas: bank sentral boleh agresif saat krisis.
     violation_5 = max(
         0.0,
         max(
@@ -41,8 +31,6 @@ def check_constraints(s, trajectory, params=None):
     )
     c5_ok = violation_5 == 0.0
 
-    # feasible = hanya C1-C4 yang WAJIB dipenuhi (hard constraints)
-    # C5 adalah soft/penalized constraint → tidak mempengaruhi status feasible
     feasible = c1_ok and c2_ok and c3_ok and c4_ok
     hard_failed = []
     if not c1_ok:
