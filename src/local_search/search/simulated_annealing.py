@@ -5,7 +5,7 @@ from evaluation.objective import compute_objective
 
 
 def simulated_annealing(s0, max_iter=1000, T0=10.0, cooling_rate=0.995,
-                         shocks=None, params=None):
+                         shocks=None, params=None, on_iteration=None):
     rng = np.random.default_rng()
 
     current = list(s0)
@@ -19,7 +19,10 @@ def simulated_annealing(s0, max_iter=1000, T0=10.0, cooling_rate=0.995,
     T = T0
     history = [score]
 
-    for _ in range(1, max_iter + 1):
+    if on_iteration:
+        on_iteration(list(current), score, 0)
+
+    for it in range(1, max_iter + 1):
         neighbor = generate_neighbor(current, rng=rng)
         n_score, _, _ = compute_objective(neighbor, shocks, params)
 
@@ -34,6 +37,9 @@ def simulated_annealing(s0, max_iter=1000, T0=10.0, cooling_rate=0.995,
 
         T *= cooling_rate
         history.append(score)
+
+        if on_iteration:
+            on_iteration(list(current), score, it)
 
     return {
         "best_state": best,

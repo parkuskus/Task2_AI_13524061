@@ -18,7 +18,7 @@ def _tournament_select(population, scores, k=3, rng=None):
 
 
 def genetic_algorithm(pop_size=50, generations=200, mutation_rate=0.15,
-                       shocks=None, params=None):
+                       shocks=None, params=None, on_iteration=None):
     if params is None:
         params = DEFAULT_PARAMS
     T = params["T"]
@@ -43,6 +43,9 @@ def genetic_algorithm(pop_size=50, generations=200, mutation_rate=0.15,
             best_score = scores[idx_best]
 
         history.append(scores[idx_best])
+
+        if on_iteration:
+            on_iteration(list(population[idx_best]), scores[idx_best], gen)
 
         new_population = [elite]
 
