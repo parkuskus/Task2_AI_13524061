@@ -58,6 +58,22 @@ Lintasan kebijakan harus membawa inflasi kembali ke dalam rentang sasaran resmi 
 
 Berbeda dengan C1-C4 yang bersifat \textit{hard constraint} (state harus memenuhi agar dinyatakan \textit{feasible}), C5 diperlakukan sebagai \textit{penalized constraint}, dimana perubahan suku bunga melebihi 50 bps diizinkan, namun dikenakan penalti kuadratik pada fungsi objektif. Pendekatan ini mencerminkan realitas kebijakan moneter, yaitu perubahan suku bunga yang terlalu agresif dapat mengguncang ekspektasi pasar dan merusak kredibilitas \textit{forward guidance} \cite{woodford2003}, namun dalam kondisi luar biasa (seperti krisis) bank sentral tetap dapat mengambil langkah drastis.
 
+\subsection{Definisi \textit{Feasible} dan Peran $\pi_T$}
+
+\textbf{Status \textit{feasible}.} Sebuah state $s$ dinyatakan \textbf{\textit{feasible}} jika dan hanya jika seluruh \textit{hard constraint} C1, C2, C3, dan C4 terpenuhi. \textit{Constraint} C5 (gradualisme) dikeluarkan dari definisi \textit{feasible} karena bersifat \textit{soft/penalized}, dimana perubahan suku bunga lebih dari 50 bps tidak membatalkan kelayakan kebijakan, melainkan hanya dikenakan penalti pada fungsi objektif $J_{penalized}(s)$. Secara formal,
+
+\[
+    \text{feasible}(s) \iff \text{C1} \land \text{C2} \land \text{C3} \land \text{C4}
+\]
+
+\textbf{Peran $\pi_T$ (inflasi terminal).} $\pi_T$ adalah nilai inflasi pada akhir horizon kebijakan ($t = T = 8$). Nilai ini menjadi variabel kunci karena
+
+\begin{itemize}
+    \item $\pi_T$ digunakan untuk verifikasi \textit{constraint} C4, yaitu $|\pi_T - \pi^{*}| \leq 1\%$. Constraint ini menjamin bahwa lintasan suku bunga yang dihasilkan algoritma tidak hanya optimal secara matematis, tetapi juga kredibel sebagai kebijakan publik. Inflasi harus kembali ke dalam rentang sasaran $2{,}5\% \pm 1\%$ pada akhir horizon.
+    \item $\pi_T$ dilaporkan bersama hasil akhir setiap algoritma agar pembaca dapat menilai secara langsung apakah kebijakan yang direkomendasikan berhasil mengarahkan inflasi menuju target.
+    \item Bersama RMSD$_{\pi}$, $\pi_T$ memberikan gambaran lengkap. RMSD$_{\pi}$ akan mengukur deviasi rata-rata sepanjang seluruh horizon, sedangkan $\pi_T$ menunjukkan kondisi akhir yang dicapai.
+\end{itemize}
+
 \section{\textit{Succesor Function}}
 
 \textit{Successor function} didefinisikan sebagai cara membangkitkan state tetangga dari sebuah state $s$. Dalam kerangka \textit{local search}, tetangga adalah state yang ``dekat'' dengan state saat ini menurut suatu metrik tertentu. Pada permasalahan ini, akan digunakan tiga jenis \textit{move}.
@@ -108,7 +124,6 @@ Bobot $w_\pi, w_y, w_{pp}, w_r$ menentukan prioritas relatif antar tujuan kebija
 Suku pertama, $-L(s)$, adalah negatif dari \textit{quadratic loss} yang mengubah permasalahan minimisasi $L(s)$ menjadi maksimisasi. Seluruh suku pada $L(s)$ bernilai non-negatif karena berbentuk kuadrat, sehingga $J(s) = -L(s) \leq 0$ untuk semua $s$. Nilai $J(s)$ yang semakin mendekati nol menandakan \textit{trajectory} ekonomi yang semakin dekat ke target. Nilai maksimum teoretis $J(s) = 0$ hanya tercapai jika semua deviasi sama dengan nol di seluruh periode, kondisi yang secara praktis mustahil karena kehadiran guncangan stokastik $\epsilon_t$.
 
 Suku kedua adalah penalti untuk \textit{constraint} C2 sampai C5 yang dilanggar. Pendekatan \textit{penalty method} dipilih karena \textit{constraint} C2 sampai C5 melibatkan variabel hasil simulasi sehingga tidak dapat diverifikasi sebelum simulasi dijalankan, berbeda dengan C1 yang dapat dicek langsung dari vektor $s$. Bobot penalti $\mu$ ditetapkan sebesar 100, cukup besar untuk mendominasi perbaikan pada $L(s)$ sehingga algoritma terdorong kuat menuju region \textit{feasible} sebelum melakukan \textit{fine-tuning} terhadap nilai $J(s)$. State yang memenuhi seluruh \textit{constraint} memiliki suku penalti nol sehingga $J_{penalized}(s) = -L(s)$. Setiap \textit{constraint} $i \in \{2, 3, 4, 5\}$ memiliki pelanggaran $\text{violation}_i(s)$ yang dihitung sebagai berikut.
-
 \begin{align*}
     \text{violation}_2(s) & = \max_{t}\!\big(0,\ -\theta - CA_t\big)                   \\
     \text{violation}_3(s) & = \max_{t}\!\big(0,\ (y_t^{SBN} - r_t) - \sigma_{max}\big) \\
@@ -247,7 +262,7 @@ Menghitung proksi imbal hasil Surat Berharga Negara.
 
 \texttt{check\_constraints(s, trajectory, params)}
 
-Memvalidasi seluruh \textit{constraint} C1 sampai C5 terhadap sebuah state dan \textit{trajectory} simulasinya, serta menghitung besar pelanggaran untuk penalti fungsi objektif.
+Memvalidasi seluruh \textit{constraint} C1 sampai C5 terhadap sebuah state dan \textit{trajectory} simulasinya, serta menghitung besar pelanggaran untuk penalti fungsi objektif. Status \textit{feasible} hanya mempertimbangkan \textit{hard constraint} C1 sampai C4; C5 adalah \textit{soft constraint} yang tidak mempengaruhi status \textit{feasible}.
 
 \begin{itemize}
     \item \texttt{s} (list[float]) state suku bunga.
@@ -389,8 +404,8 @@ T = 8
 params = {
     "r0": 5.75, "pi0": 3.34, "y0": 0.00, "e0": 17885,
     "r0_US": 3.625, "pi_star": 2.5, "pp_star": 0.0,
-    "rho_y": 0.60, "beta": 0.30, "kappa": 0.11, "phi": 0.15,
-    "rho_pi": 0.60, "rho_e": 0.00, "r_star": 2.5,
+    "rho_y": 0.60, "beta": 0.30, "kappa": 0.11, "phi": 0.30,
+    "rho_pi": 0.85, "rho_e": 0.00, "r_star": 2.5,
     "alpha1": 0.20, "alpha2": 0.15, "rho_fiskal": 1.50,
     "r_min": 3.00, "r_max": 8.00,
     "delta_min": 1.50, "theta": 3.00, "sigma_max": 2.50,

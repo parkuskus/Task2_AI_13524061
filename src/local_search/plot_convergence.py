@@ -1,3 +1,4 @@
+import sys
 import numpy as np
 import matplotlib.pyplot as plt
 from config import DEFAULT_PARAMS
@@ -11,8 +12,20 @@ from search.hill_climbing import hill_climbing
 from search.simulated_annealing import simulated_annealing
 from search.genetic_algorithm import genetic_algorithm
 
+HC_VARIANTS = ["steepest_ascent", "sideways", "stochastic", "random_restart"]
+
 
 def main():
+    hc_variant = "steepest_ascent"
+    args = sys.argv[1:]
+    i = 0
+    while i < len(args):
+        if args[i] in ("--hc", "--hc-variant"):
+            i += 1
+            if i < len(args):
+                hc_variant = args[i]
+        i += 1
+
     params = DEFAULT_PARAMS
     T = params["T"]
     shocks = generate_shocks(T=T, seed=42)
@@ -24,7 +37,9 @@ def main():
     print(f"Initial J(s)   : {score0:.4f}")
 
     hc = hill_climbing(s0, max_iter=2000, shocks=shocks,
-                        params=params, patience=500)
+                        params=params, variant=hc_variant,
+                        patience=500, sideways_limit=100,
+                        restarts=10)
 
     sa = simulated_annealing(s0, max_iter=5000, T0=50.0,
                               cooling_rate=0.998, shocks=shocks,
@@ -40,7 +55,7 @@ def main():
     ax.plot(hc["history"], color="#1f77b4", linewidth=0.8)
     ax.axhline(y=hc["best_score"], color="red", linestyle="--",
                label=f"Best = {hc['best_score']:.2f}")
-    ax.set_title(f"Hill-Climbing ({hc['iterations']} evals)")
+    ax.set_title(f"Hill-Climbing ({hc_variant}, {hc['iterations']} evals)")
     ax.set_xlabel("Evaluasi")
     ax.set_ylabel("J(s)")
     ax.legend()
@@ -69,7 +84,7 @@ def main():
 
     ax = axes[1, 1]
     ax.plot(hc["history"], color="#1f77b4", alpha=0.4, linewidth=0.5,
-            label="Hill-Climbing")
+            label=f"Hill-Climbing ({hc_variant})")
     ax.plot(np.maximum.accumulate(sa["history"]),
             color="#ff7f0e", linewidth=1.2, label="SA (best-so-far)")
     ax.plot(ga["history"], color="#2ca02c", linewidth=1.2,
@@ -85,7 +100,7 @@ def main():
     plt.show()
 
     results = []
-    for name, res in [("HC", hc), ("SA", sa), ("GA", ga)]:
+    for name, res in [(f"HC-{hc_variant}", hc), ("SA", sa), ("GA", ga)]:
         traj = simulate_economy(res["best_state"], shocks, params)
         cons = check_constraints(res["best_state"], traj, params)
         rmsd = compute_rmsd(traj)
